@@ -1,17 +1,13 @@
-import os; import math
 import numpy as np
 import gymnasium as gym 
-
-import pygame; import bpy
-from mathutils import Vector
-from PIL import Image
+import pygame
 
 from numpy.typing import NDArray
-from typing import Any, List
+from typing import Any, Dict, List, Tuple
 
 from hyphi_gym.envs.common.base import *
+from hyphi_gym.envs.common.env3D import Env3D
 from hyphi_gym.envs.common.plotting import heatmap_2D
-from hyphi_gym.utils import stdout_redirected
 
 TARGET_REWARD, STEP_COST, HOLE_COST = 50, -1, -50
 WALL, FIELD, AGENT, TARGET, HOLE = '#', ' ', 'A', 'T', 'H'
@@ -27,7 +23,8 @@ CELL_RENDER = { # canvas, position, scale
 UP, RIGHT, DOWN, LEFT = 0, 1, 2, 3; ACTIONS = [UP, RIGHT, DOWN, LEFT]
 RAND_KEY = ['Agent', 'Target']; RAND_KEYS = ['Agents', 'Targets']; RAND = ['Layouts', *RAND_KEY, *RAND_KEYS]
 
-class Grid(Base):
+class Grid(Base, Env3D):
+  board: NDArray
   metadata = {"render_modes": ["2D", "3D", "ascii"], "render_fps": 4, "render_resolution": (960,720), 'tmp': '/tmp/env.png'} ## Alternative Resolutions: (320,240),(960,720),(1280,960),(1920,1440),(4096,3072)
   def __init__(self, size, layout, render_mode='2D', random=[], **kwargs):
     assert all([r in RAND for r in random]), f'Please specify all random elements in {RAND}' 
@@ -35,7 +32,7 @@ class Grid(Base):
     if len(random): assert self._np_random is not None, "Please provide a seed to use nondeterministic features"
     self.observation_space = gym.spaces.MultiDiscrete(np.full(np.prod(size), len(CELL_LOOKUP)))
     self.size, self.action_space = size, gym.spaces.Discrete(4)
-    self.layout, self.board = self._to_grid(layout) if layout else None, None
+    self.layout = self._to_grid(layout) if layout else None
     [self.randomize(key[0], self.layout) for key in RAND_KEY if key in random]
     assert render_mode is None or render_mode in self.metadata["render_modes"]
     self.render_mode, self.scene = render_mode, None
@@ -87,50 +84,6 @@ class Grid(Base):
     for x in range(self.size[0] + 1): pygame.draw.line(canvas, 0, (0, CELL_SIZE * x), (window_size[0], CELL_SIZE * x), width=1)
     for x in range(self.size[1] + 1): pygame.draw.line(canvas, 0, (CELL_SIZE * x, 0), (CELL_SIZE * x, window_size[1]), width=1)
     return np.transpose(np.array(pygame.surfarray.pixels3d(canvas)), axes=(1, 0, 2))  
-
-  def setup3D(self, layout):
-    bpy.ops.wm.read_homefile(use_empty=True)
-    with stdout_redirected(): bpy.ops.import_scene.fbx(filepath=f'{os.path.dirname(__file__)}/env.fbx')
-    self.scene = bpy.context.scene # Ref scene after import for sandboxed look
-
-    def _place_3D(x, y, t):
-      if t == HOLE: return
-      o = bpy.data.objects[t] 
-      if t in [AGENT, TARGET]: _place_3D(x, y, FIELD)
-      else: o = o.copy(); bpy.context.collection.objects.link(o)
-      o.location = Vector((y*.1,x*.1,-0.1 if t == ' ' else 0))
-
-    [_place_3D(x, y, CELL_LOOKUP[cell]) for y, row in enumerate(layout) for x, cell in enumerate(row)]
-    for proto in [WALL,FIELD]: bpy.data.objects[proto].hide_render = True
-    self.scene.render.engine = 'BLENDER_WORKBENCH'
-    self.scene.render.resolution_x, self.scene.render.resolution_y = self.metadata['render_resolution']
-    self.scene.display.shading.studio_light = 'studio.sl' # slightly darker 
-    camera = bpy.data.objects.new('Camera', bpy.data.cameras.new(name='Camera'))
-    bpy.context.scene.collection.objects.link(camera); self.scene.camera = camera
-    zoom = 3 * sum(layout.shape)/len(layout.shape)
-    camera.location = Vector((np.array((*layout.shape, zoom)) / 4 + min(layout.shape)) / 10)
-    camera.rotation_euler = math.pi * np.array((30,0,135))/180
-
-  def update3D(self, action, mPos, Cell):
-    bpy.data.objects['A'].rotation_euler = (0,0,[0.5,0,1.5,1][action] * math.pi)
-    if Cell in [FIELD, TARGET]: bpy.data.objects['A'].location = Vector((mPos[0]*.1,mPos[1]*.1,0))      
-    if Cell == TARGET: bpy.data.objects['T'].hide_render = True  # Hide Overlap Components
-    if Cell == HOLE: bpy.data.objects['A'].hide_render = True    # Hide Overlap Components
-    
-  def render3D(self, write_file=None):
-    bpy.ops.render.render(); bpy.data.images['Render Result'].save_render(self.metadata['tmp'])
-    if write_file is not None: bpy.data.images['Render Result'].save_render(write_file)
-    return np.asarray(Image.open(self.metadata['tmp']))[:,:,:3]
-  
-  def reset3D(self):
-    # if self.layout is None: self.setup3D()
-    if len(self.random): self.setup3D(self.board)
-    aPos = self.getpos()
-    bpy.data.objects['A'].location = Vector((aPos[0]*.1,aPos[1]*.1,0))      
-    bpy.data.objects['A'].rotation_euler = (0,0,0)
-    bpy.data.objects['T'].hide_render, bpy.data.objects['A'].hide_render = False, False
-    bpy.data.objects['T'].hide_render = self.explore 
-
     
   def render(self):
     if self.render_mode not in self.metadata['render_modes']: return 
@@ -168,7 +121,7 @@ class Grid(Base):
     if field == HOLE: termination, reward = 'FAIL', HOLE_COST + STEP_COST
     return reward, termination, position, target, field
 
-  def _step(self, action):
+  def _step(self, action:int) -> Tuple[NDArray, int, bool, bool, Dict[str,Any]]:
     reward, termination, position, target, field = self._reward(self.board, action)
     info = {'termination_reason': termination} if termination is not None else {} 
     if field is not WALL: self.board[tuple(position)] = CELL_LOOKUP.index(FIELD)  # Move Agent 
@@ -184,7 +137,7 @@ class Grid(Base):
 
   def newpos(self, position, action, n=1): return tuple(np.array(position)+[(-n,0),(0,n),(n,0),(0,-n)][action])
 
-  def iterate_actions(self, p, n=1, condition=lambda a,p,n: True): 
+  def iterate_actions(self, p, n=1, condition=lambda act,pos,n: True): 
     """Return possible n actions in a bounded box given a position p and their mutated positions"""
     return {a: self.newpos(p,a,n) for a in ACTIONS if condition(a,p,n)}
   
