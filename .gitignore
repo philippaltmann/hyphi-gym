@@ -52,4 +52,5 @@ docs/_build/
 # PyCharm
 .idea
 
-test/*
+.envrc
+test
