@@ -9,20 +9,6 @@ from hyphi_gym.envs.common.base import *
 from hyphi_gym.envs.common.env3D import Env3D
 from hyphi_gym.envs.common.plotting import heatmap_2D
 
-TARGET_REWARD, STEP_COST, HOLE_COST = 50, -1, -50
-WALL, FIELD, AGENT, TARGET, HOLE = '#', ' ', 'A', 'T', 'H'
-CELL_LOOKUP = [WALL, FIELD, AGENT, TARGET, HOLE]
-CELL_SIZE = 64
-CELL_RENDER = { # canvas, position, scale
-  WALL: lambda c, p, s=CELL_SIZE: pygame.draw.rect(c, (32, 32, 32, 100), pygame.Rect(s*p,(s,s))),
-  FIELD: lambda c, p, s=CELL_SIZE: pygame.draw.rect(c, (192, 192, 192, 100), pygame.Rect(s*p,(s,s))),
-  HOLE: lambda c, p, s=CELL_SIZE: pygame.draw.rect(c, (0, 0, 0, 100), pygame.Rect(s*p,(s,s))),
-  AGENT: lambda c, p, s=CELL_SIZE: pygame.draw.rect(c, (32, 128, 255), pygame.Rect((p+.1)*s,(s*.8,s*.8)), border_radius=int(s*.2)),
-  TARGET: lambda c, p, s=CELL_SIZE: pygame.draw.rect(c, (32, 224, 64), pygame.Rect((p+.25)*s,(s*.5,s*.5)), border_radius=int(s*.25)),
-}
-UP, RIGHT, DOWN, LEFT = 0, 1, 2, 3; ACTIONS = [UP, RIGHT, DOWN, LEFT]
-RAND_KEY = ['Agent', 'Target']; RAND_KEYS = ['Agents', 'Targets']; RAND = ['Layouts', *RAND_KEY, *RAND_KEYS]
-
 class Grid(Base, Env3D):
   board: NDArray
   metadata = {"render_modes": ["2D", "3D", "ascii"], "render_fps": 4, "render_resolution": (960,720), 'tmp': '/tmp/env.png'} ## Alternative Resolutions: (320,240),(960,720),(1280,960),(1920,1440),(4096,3072)
@@ -79,6 +65,13 @@ class Grid(Base, Env3D):
     return f'{RST}Step: {len(self.reward_buffer)}{CLR}\n' + f'{CLR}\n'.join(self._to_ascii(self.board))+f'{CLR}\n'
 
   def render2D(self):
+    CELL_RENDER = { # canvas, position, scale
+      WALL: lambda c, p, s=CELL_SIZE: pygame.draw.rect(c, (32, 32, 32, 100), pygame.Rect(s*p,(s,s))),
+      FIELD: lambda c, p, s=CELL_SIZE: pygame.draw.rect(c, (192, 192, 192, 100), pygame.Rect(s*p,(s,s))),
+      HOLE: lambda c, p, s=CELL_SIZE: pygame.draw.rect(c, (0, 0, 0, 100), pygame.Rect(s*p,(s,s))),
+      AGENT: lambda c, p, s=CELL_SIZE: pygame.draw.rect(c, (32, 128, 255), pygame.Rect((p+.1)*s,(s*.8,s*.8)), border_radius=int(s*.2)),
+      TARGET: lambda c, p, s=CELL_SIZE: pygame.draw.rect(c, (32, 224, 64), pygame.Rect((p+.25)*s,(s*.5,s*.5)), border_radius=int(s*.25)),
+    }
     window_size = tuple(np.array(self.size)[::-1] * CELL_SIZE); canvas = pygame.Surface(window_size); canvas.fill((192, 192, 192))
     [CELL_RENDER[CELL_LOOKUP[int(cell)]](canvas, np.array([x,y])) for y, row in enumerate(self.board) for x, cell in enumerate(row)]
     for x in range(self.size[0] + 1): pygame.draw.line(canvas, 0, (0, CELL_SIZE * x), (window_size[0], CELL_SIZE * x), width=1)

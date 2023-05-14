@@ -1,8 +1,8 @@
 # type: ignore
-import os; import math
+import os; import math; import numpy as np
 import bpy; from mathutils import Vector
 from hyphi_gym.envs.common.base import *
-from hyphi_gym.envs.common.grid import *
+from hyphi_gym.envs.common.grid import CELL_LOOKUP
 from hyphi_gym.utils import stdout_redirected
 from PIL import Image
 
