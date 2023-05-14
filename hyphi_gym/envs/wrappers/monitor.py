@@ -13,7 +13,8 @@ class Monitor(gym.Wrapper[ObsType, ActType, ObsType, ActType]):
         self.t_start = time.time()
         self.states: List[Any] = []; self.actions: List[Any] = []; self.rewards: List[float] = []
         self._history = lambda: {key: getattr(self,key).copy() for key in ['states','actions','rewards']}
-        self._episode_returns: List[float] = []; self._episode_lengths: List[int] = []; self._episode_times: List[float] = []
+        self._episode_returns: List[float] = []; self._termination_reasons: List[Any] = []
+        self._episode_lengths: List[int] = []; self._episode_times: List[float] = []; 
         self._total_steps = 0; self.needs_reset = True
 
     def reset(self, **kwargs) -> Tuple[ObsType, Dict[str, Any]]:
@@ -35,7 +36,8 @@ class Monitor(gym.Wrapper[ObsType, ActType, ObsType, ActType]):
         if terminated or truncated:
             self.needs_reset = True; ep_rew = sum(self.rewards); ep_len = len(self.rewards)
             ep_info = {"r": round(ep_rew, 6), "l": ep_len, "t": round(time.time() - self.t_start, 6), 'history': self._history()}
-            self._episode_returns.append(ep_rew); self._episode_lengths.append(ep_len); self._episode_times.append(time.time() - self.t_start)
+            self._episode_returns.append(ep_rew); self._termination_reasons.append(info.pop('termination_reason'))
+            self._episode_lengths.append(ep_len); self._episode_times.append(time.time() - self.t_start)
             info["episode"] = ep_info
         self._total_steps += 1
         return state, reward, terminated, truncated, info
@@ -45,6 +47,9 @@ class Monitor(gym.Wrapper[ObsType, ActType, ObsType, ActType]):
 
     @property
     def episode_returns(self) -> List[float]: return self._episode_returns
+
+    @property
+    def termination_reasons(self) -> List[Any]: return self._termination_reasons
 
     @property
     def episode_lengths(self) -> List[int]: return self._episode_lengths
