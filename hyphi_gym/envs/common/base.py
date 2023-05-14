@@ -22,7 +22,7 @@ class Base(gym.Env):
   def __init__(self, max_episode_steps=100, sparse=False, explore=False, seed=None): #stop=False,
     self.dynamic_spec = ['reward_threshold', 'nondeterministic', 'max_episode_steps']
     self._spec, self.max_episode_steps, self.sparse, self.explore = {}, max_episode_steps, sparse, explore 
-    self.nondeterministic = len(self.random) > 0; self._np_random, seed = seeding.np_random(seed)
+    self.nondeterministic = len(self.random) > 0; self.seed(seed);
 
   @property #if stop else None TODO: handle stopping via training param
   def reward_threshold(self): return round(.95 * self.reward_range[1])
@@ -35,6 +35,8 @@ class Base(gym.Env):
 
   @spec.setter
   def spec(self, spec): self._spec = {k:v for k,v in spec.__dict__.items() if k not in ['namespace','name','version']}
+
+  def seed(self, seed=None): self._np_random, self._seed = seeding.np_random(seed)
 
   def reset(self, **kwargs): 
     self.reward_buffer, self.termination_resaons = [], []; 
