@@ -32,7 +32,7 @@ dependencies = [
 version = '1.0'
 
 [project.urls]
-Repository = "https://github.com/philippaltmann/hyphi-gym"
+Repository = "git@gitlab.com:organization/repo.git"
 
 [project.entry-points."gymnasium.envs"]
 __root__ = "hyphi_gym.__init__:register_envs"
