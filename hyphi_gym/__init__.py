@@ -1,11 +1,11 @@
 import re
-from gymnasium.envs.registration import register
+from gymnasium.envs.registration import register, WrapperSpec
 from hyphi_gym.envs.HoleyGrid.holey_grid import *
 
 def register_envs():
-  print("Register")
-  register(id="HoleyGrid", entry_point="hyphi_gym.envs.HoleyGrid.holey_grid:HoleyGrid")
-  register(id="GridMaze", entry_point="hyphi_gym.envs.Maze.maze:Maze") 
+  wrapper = WrapperSpec(name='Monitor', entry_point='hyphi_gym.envs.wrappers.monitor:Monitor', kwargs={})
+  register(id="HoleyGrid", entry_point="hyphi_gym.envs.HoleyGrid.holey_grid:HoleyGrid", additional_wrappers=(wrapper,))
+  register(id="GridMaze", entry_point="hyphi_gym.envs.Maze.maze:Maze", additional_wrappers=(wrapper,)) 
 
 def named(name):
   """Enviroment creation helper, trasforms string name to make arguments.
