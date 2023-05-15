@@ -1,9 +1,9 @@
-# <img src="image/hyphi.png" alt= “” width="24px" height="value"> hyphi Benchmark Gymnasium 
+# <img src="hyphi_gym/assets/hyphi.png" alt= “” width="24px" height="value"> hyphi Benchmark Gymnasium 
 
 Gym-0.28 based compilation of benchmark environmens for various discrete action and observation spaces including different tasks.
 
 ## Holey Grid
-![Overview of deterministic holey gridworlds](image/HoleyGrid.png)
+![Overview of deterministic holey gridworlds](hyphi_gym/assets/HoleyGrid.png)
 
 **Goal:** Navigate to the target state whilst avoiding unsafe states (holes).
 
@@ -22,7 +22,7 @@ Additionally, the polices' robustness to distributional shift can be assesed by 
 
 ## GridMaze
 
-![Overview of deterministic maze environments](image/Mazes.png)
+![Overview of deterministic maze environments](hyphi_gym/assets/Mazes.png)
 
 **Goal:** Navigate the maze to reach the target.
 
