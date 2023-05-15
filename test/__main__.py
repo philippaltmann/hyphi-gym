@@ -5,10 +5,11 @@
 - Train and shifted holey grids
 - random layouts, agent-, and target- positions """
 import sys
-import PIL
+from typing import Union
+from PIL import Image
 import hyphi_gym
 import gymnasium as gym
-from moviepy.video.io.ImageSequenceClip import ImageSequenceClip
+from hyphi_gym import Monitor
 from hyphi_gym.utils import stdout_redirected
 
 render = '--render' in sys.argv 
@@ -120,25 +121,21 @@ TEST = {
 print('Running tests...')
 for name, test in TEST.items():
   print(f"\t• {test['desc']}")
-  env = gym.make(**hyphi_gym.named(name), seed=test['args']['seed'], render_mode=test['args']['render_mode'])
+  env:Union[Monitor, gym.Env] = Monitor(gym.make(**hyphi_gym.named(name), seed=test['args']['seed'], render_mode=test['args']['render_mode']), record_video=render)
+  assert env.spec is not None; 
   for k,v in env.spec.kwargs.items(): assert test['args'][k]==v, f"Value at {k} shold be {test['args'][k]}, not {v}"
   obs, _ = env.reset(); R, frame_buffer = [], []  
   with stdout_redirected(f'test/text/{env.name}.txt'): env.ascii(env.board)
   assert all(obs == env.reset()[0]) is not any(['s' in r for r in env.random]), 'Random Reset Failed'
   # assert all(obs == env.layout.flat) is not any(['s' in r for r in env.random]), 'Random Reset Failed'
-  PIL.Image.fromarray(env.render()).save(f"test/image/{env.name}.png")
-
-  for a in test['path'] or [env.action_space.sample() for _ in range(env.spec.max_episode_steps)]:
-    if render: frame_buffer.append(env.render())
+  Image.fromarray(env.render()).save(f"test/image/{env.name}.png")
+  for a in test['path'] or [env.action_space.sample() for _ in range(env.spec.max_episode_steps or 100)]:
     observation, reward, terminated, truncated, info = env.step(a); R.append(reward)
     if terminated or truncated: break; #  print(info)       
   if env.spec.kwargs['sparse']: assert R[-1] == test['return'], f"Sparse reward was {R[-1]} not {test['return']}"
   else: assert sum(R) == test['return'], f"Max reward was {sum(R)} not {test['return']}"
   env.heatmap(lambda e,s,a,r: r, (-50, 50)).savefig(f'test/heatmap/{name}.png')
-  if render: 
-    frame_buffer.append(env.render())
-    with stdout_redirected():
-      ImageSequenceClip(frame_buffer, fps=5).write_videofile(f'test/video/{env.name}-{test["args"]["render_mode"]}.mp4', verbose=False, logger=None)
+  if render: env.save_video(f'test/video/{env.name}-{test["args"]["render_mode"]}.mp4')
 
 ERROR = ['Maze10', 'HolesDense', 'Mazes19']; fails = 0
 for name in ERROR:
