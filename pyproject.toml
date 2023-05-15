@@ -28,6 +28,7 @@ dependencies = [
     'matplotlib>=3.5',  # Plot heatmaps
     'mathutils>=3.3',   # Utils
     'numpy>=1.21',      # Utils
+    'torch>=2.0'
 ]
 version = '1.0'
 
