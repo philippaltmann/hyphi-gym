@@ -9,7 +9,7 @@ class Board(Base):
   Containining `CELLS` ∈ `[WALL, FIELD, AGENT, TARGET, HOLE]`, navigatable with `ACTIONS` ∈ `[UP, RIGHT, DOWN,LEFT]`, 
   supporting the randomization of "Agent" and "Target" position on `__init__`, or "Agents" and "Targets" on `reset`."""
 
-  board: np.ndarray; size:tuple[int,int]
+  board: np.ndarray; size:tuple[int,int]; layout:Optional[np.ndarray]=None
   UP, RIGHT, DOWN, LEFT = 0, 1, 2, 3; ACTIONS = [UP, RIGHT, DOWN, LEFT] 
   WALL, FIELD, AGENT, TARGET, HOLE = '#', ' ', 'A', 'T', 'H' 
   CELLS = {WALL: 0, FIELD: 1, AGENT: 2, TARGET: 3, HOLE: 4}
@@ -20,9 +20,9 @@ class Board(Base):
     assert all([r in self.RAND for r in random]), f'Please specify all random elements in {self.RAND}' 
     if layout is not None: self.layout = self._grid(layout); [self.randomize(r[0], self.layout) for r in RAND_KEY if r in random]
 
-  def ascii(self, grid:Optional[np.ndarray]=None) -> str:
-    """Transform 2D-INT Array to string"""
-    return '\n'.join([''.join([self.CHARS[c] for c in row]) for row in list(grid if grid is not None else self.board)])
+  def ascii(self, grid:Optional[np.ndarray]=None) -> list[str]:
+    """Transform 2D-INT Array to list of strings"""
+    return [''.join([self.CHARS[c] for c in row]) for row in list(grid if grid is not None else self.board)]
   
   def _grid(self, ascii:list[str]) -> np.ndarray:
     """Transform 1D string to 2D-INT Array"""
