@@ -1,55 +1,61 @@
-from typing import Any, List, SupportsFloat
+from typing import Any, List, Optional, SupportsFloat
 import gymnasium as gym 
 from gymnasium.envs.registration import EnvSpec
 from gymnasium.utils import seeding
-
-
-STOP_PERCENTAGE = 0.95
-TARGET_REWARD, STEP_COST, HOLE_COST = 50, -1, -50
-WALL, FIELD, AGENT, TARGET, HOLE = '#', ' ', 'A', 'T', 'H'
-CELL_LOOKUP = [WALL, FIELD, AGENT, TARGET, HOLE]
-CELL_SIZE = 64
-UP, RIGHT, DOWN, LEFT = 0, 1, 2, 3; ACTIONS = [UP, RIGHT, DOWN, LEFT]
-RAND_KEY = ['Agent', 'Target']; RAND_KEYS = ['Agents', 'Targets']; RAND = ['Layouts', *RAND_KEY, *RAND_KEYS]
+from gymnasium.spaces import Space
 
 class Base(gym.Env):
   """ Base Env Implementing 
+  • Trucated Episodes (via `max_episode_steps`)
   • Sparse Rewards (defaults to False)
-  • Early Stopping on reward threshold (defaults to False) TODO: MOVE TO WRAPPER?
-  • Trucated Episodes (via `max_episode_steps`)"""
+  • Reward Threshold for Early Stopping 
+  • Exploration Mode, where both the target and the reward are removed. 
+  • Seeding nondeterministic environemtn configureation
+  • Generating a dynamic spec obejct and env name based on the configuration"""
   random: List; termination_resaons:List; _name: str
 
-  def __init__(self, max_episode_steps=100, sparse=False, explore=False, seed=None): #stop=False,
-    self.dynamic_spec = ['reward_threshold', 'nondeterministic', 'max_episode_steps']
-    self._spec, self.max_episode_steps, self.sparse, self.explore = {}, max_episode_steps, sparse, explore 
-    self.nondeterministic = len(self.random) > 0; self.seed(seed);
+  def __init__(self, max_episode_steps=100, sparse=False, explore=False, seed:Optional[int]=None):
+    self.max_episode_steps, self.reward_range = max_episode_steps, (-max_episode_steps, -max_episode_steps)
+    self.dynamic_spec, self._spec = ['reward_threshold', 'nondeterministic', 'max_episode_steps'], {}
+    self.sparse, self.explore, self.nondeterministic = sparse, explore, len(self.random) > 0; self.seed(seed)
+    if len(self.random): assert self.np_random is not None, "Please provide a seed to use nondeterministic features"
 
-  @property #if stop else None TODO: handle stopping via training param
-  def reward_threshold(self): return round(.95 * self.reward_range[1])
+  @property
+  def reward_threshold(self)->float: 
+    """Gets the current layout's reward threshold"""
+    return round(.95 * self.reward_range[1])
   
   @property
-  def name(self): return ''.join([self._name, *[n.capitalize() for n in ['explore', 'sparse'] if getattr(self,n)], *self.random])
+  def name(self)->str: 
+    """Generates the dynamic environent name"""
+    return ''.join([self._name, *[n.capitalize() for n in ['explore', 'sparse'] if getattr(self,n)], *self.random])
 
   @property
-  def spec(self): return EnvSpec(**{**self._spec, **{k:getattr(self,k) for k in self.dynamic_spec}})
+  def spec(self)->EnvSpec: 
+    """Getter function to generate the dynmaic environment spec"""
+    return EnvSpec(**{**self._spec, **{k:getattr(self,k) for k in self.dynamic_spec}})
 
   @spec.setter
-  def spec(self, spec): self._spec = {k:v for k,v in spec.__dict__.items() if k not in ['namespace','name','version']}
+  def spec(self, spec: dict[str,Any]): 
+    """Function to mutate the internal environment spec (e.g., for adapting max_episode_steps)"""
+    self._spec = {k:v for k,v in spec.__dict__.items() if k not in ['namespace','name','version']}
 
-  def seed(self, seed=None): self._np_random, self._seed = seeding.np_random(seed)
+  def seed(self, seed:Optional[int]=None): self.np_random, self._seed = seeding.np_random(seed)
 
-  def reset(self, **kwargs): 
+  def reset(self, **kwargs)->tuple[Space, dict[str, Any]]:
+    """Gymnasium compliant function to reset the environment""" 
     self.reward_buffer, self.termination_resaons = [], []; 
     return super().reset(**kwargs)
 
-  def _step(self, action:Any) -> tuple[Any, SupportsFloat, bool, bool, dict[str, Any]]:
+  def _step(self, action:Space) -> tuple[Any, SupportsFloat, bool, bool, dict[str, Any]]: 
+    """Overwrite this function to perfom step mutaions on the actual environment"""
     raise(NotImplementedError)
   
-  def step(self, action:Any) -> tuple[Any, SupportsFloat, bool, bool, dict[str, Any]]:
+  def step(self, action:Space) -> tuple[Space, SupportsFloat, bool, bool, dict[str, Any]]:
+    """Gymnasium compliant fucntion to step the environment with `action` using the internal `_step`"""
     state, reward, terminated, truncated, info = self._step(action); self.reward_buffer.append(reward)
     if self.explore: reward = 0
     truncated = self.max_episode_steps is not None and len(self.reward_buffer) >= self.max_episode_steps
     if truncated: info = {'termination_reason': 'TIME', **info}; self.termination_resaons.append('TIME')
-    # if truncated or terminated: info = {'episode': {'l': len(self.rewards), 'r': sum(self.rewards)}, 'history':self._history(), **info}
     if self.sparse: reward = 0 if not (terminated or truncated) else sum(self.reward_buffer)
     return state, reward, terminated, truncated, info
