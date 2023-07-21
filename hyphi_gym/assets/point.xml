@@ -1,0 +1,27 @@
+<mujoco>
+  <compiler inertiafromgeom="true" angle="radian" coordinate="local"/>
+  <option timestep="0.01" gravity="0 0 0" iterations="20" integrator="Euler"/>
+  <default>
+    <joint damping="1" limited='false'/>
+    <geom friction=".5 .1 .1" density="1000" margin="0.002" condim="1" contype="2" conaffinity="1"/>
+  </default>
+  <asset>
+    <material name="agent" specular="0.5" shininess="0.36" rgba="0.000000 0.520996 0.791299 1.000000"/>
+    <material name="target" emission=".2" specular=".5" shininess=".7" reflectance="0" rgba="0 .8 .37 1"/>
+    <material name="#" emission="0" specular="0" shininess="1" reflectance="1" rgba=".2 .2 .2 1"/>
+    <material name=" " emission="0" specular="0" shininess="0" reflectance="0" rgba=".4 .4 .4 .8"/>
+  </asset>
+  <visual><headlight ambient=".4 .4 .4" diffuse=".8 .8 .8" specular="0.1 0.1 0.1"/></visual>
+  <worldbody>
+    <body name="particle" pos="0 0 0">
+      <geom name="particle_geom" type="sphere" size=".3" pos="0 0 .3" contype="1" material="agent"/>
+      <joint name="ball_x" type="slide" pos="0 0 0" axis="1 0 0"/>
+      <joint name="ball_y" type="slide" pos="0 0 0" axis="0 1 0"/>
+    </body>
+    <site name="target" material="target" type="capsule" pos="0 0 0.5" size="0.2 0.3" />
+  </worldbody>
+  <actuator>
+    <motor name="motor_x" joint="ball_x" ctrlrange="-1.0 1.0" ctrllimited="true" gear="3000"/>
+    <motor name="motor_y" joint="ball_y" ctrlrange="-1.0 1.0" ctrllimited="true" gear="3000"/>
+  </actuator>
+</mujoco>
