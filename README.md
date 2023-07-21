@@ -3,7 +3,9 @@
 Gym-0.28 based compilation of benchmark environmens for various discrete action and observation spaces including different tasks.
 
 ## Holey Grid
-![Overview of deterministic holey gridworlds](hyphi_gym/assets/HoleyGrid.png)
+HoleyGrid             |  HoleyShift
+:-------------------------:|:-------------------------:
+![](hyphi_gym/assets/render/HoleyGrid.png)  |  ![](hyphi_gym/assets/render/HoleyGridShift.png)
 
 **Goal:** Navigate to the target state whilst avoiding unsafe states (holes).
 
@@ -17,12 +19,14 @@ Gym-0.28 based compilation of benchmark environmens for various discrete action 
 This environment poses a safety critical challenge, where holes represent risk to be avoided. 
 Additionally, the polices' robustness to distributional shift can be assesed by evaluatiing eihter with a shifted goal, or shifted holes. 
 
-**Origin:** This environemnt is inspried by the AI Safety Grildworlds \[[Paper](https://arxiv.org/abs/1711.09883)\] \[[Code](https://github.com/deepmind/ai-safety-gridworlds)\]
+**Origin:** This environemnt is inspried by the AI Safety Gridworlds \[[Paper](https://arxiv.org/abs/1711.09883)\] \[[Code](https://github.com/deepmind/ai-safety-gridworlds)\]
 
 
-## GridMaze
+## Grid Maze
 
-![Overview of deterministic maze environments](hyphi_gym/assets/Mazes.png)
+Maze7![](hyphi_gym/assets/render/Maze7.png) | Maze9![](hyphi_gym/assets/render/Maze9.png) | Maze11![](hyphi_gym/assets/render/Maze11.png) | Maze13![](hyphi_gym/assets/render/Maze13.png) | Maze15![](hyphi_gym/assets/render/Maze15.png)
+:-:|:-:|:--:|:--:|:--:|
+Mazes7![](hyphi_gym/assets/render/Mazes7.gif) | Mazes9![](hyphi_gym/assets/render/Mazes9.gif) | Mazes11![](hyphi_gym/assets/render/Mazes11.gif) | Mazes13![](hyphi_gym/assets/render/Mazes13.gif) | Mazes15![](hyphi_gym/assets/render/Mazes15.gif)
 
 **Goal:** Navigate the maze to reach the target.
 
@@ -37,6 +41,23 @@ Additionally, the polices' robustness to distributional shift can be assesed by 
 **Origin:** This environemnt is inspried by the Procgen Benchmark \[[Paper](https://arxiv.org/abs/1912.01588)\] \[[Code](https://github.com/openai/procgen)\]
 
 
+## PointMaze
+
+https://github.com/Farama-Foundation/D4RL
+
+https://arxiv.org/abs/2004.07219
+
+Lookup for defining input xml:
+https://mujoco.readthedocs.io/en/stable/XMLreference.html
+
+
+Robotics tasks 
+
+https://github.com/Farama-Foundation/Metaworld
+
+
+
+
 ## Random Variations
 
 All environments comprise further random variations for both the agent's start- and the target-position. 
@@ -47,3 +68,18 @@ Thus, the following variations may be used within the `random` list:
 - ``Target``: Target posision randomized once upon environment creation
 - ``Agents``: Initial position randomized upon environment reset
 - ``Targets``: Target posision randomized upon environment reset
+
+
+### MuJoCo Helpers
+
+[XML-Reference](https://mujoco.readthedocs.io/en/stable/XMLreference.html#asset-mesh-refquat)
+[3D Object Converter](https://github.com/kevinzakka/obj2mjcf)
+   
+
+Additionals 
+
+Heatmaps:
+```py
+from hyphi_gym.utils.plotting import heatmap
+heatmap(env.iterate(fn),*args) 
+```
