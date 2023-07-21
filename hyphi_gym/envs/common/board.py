@@ -1,6 +1,22 @@
 import numpy as np
 from typing import Any, Dict, Tuple, Optional, Union
-from hyphi_gym.envs.common.base import *
+from hyphi_gym.envs.common import Base
+
+# State Types
+WALL, FIELD, AGENT, TARGET, HOLE = '#', ' ', 'A', 'T', 'H' 
+CELLS = {WALL: 0, FIELD: 1, AGENT: 2, TARGET: 3, HOLE: 4}
+
+# Actions
+UP, RIGHT, DOWN, LEFT = 0, 1, 2, 3; ACTIONS = [UP, RIGHT, DOWN, LEFT] 
+
+# Rewards 
+TARGET_REWARD, STEP_COST, HOLE_COST = 50, -1, -50
+# TODO: add continuous rewards and params
+
+# Stochasticity
+RAND_KEY = ['Agent', 'Target']; RAND_KEYS = ['Agents', 'Targets']; 
+CHARS = list(CELLS.keys()); RAND = [*RAND_KEY, *RAND_KEYS]
+
 
 class Board(Base):
   """Board: Grid Based Games Base Class managing a `layout`of a variable `size`, extending `Base`.
@@ -40,12 +56,28 @@ class Board(Base):
 
   def _generate(self)->np.ndarray:
     """Random generator function for a grid of size `self.size`"""
-    inside = tuple(s-2 for s in self.size)
-    agent = tuple(np.random.randint((0,0), inside)); target = agent
-    while target is agent: target = tuple(np.random.randint((0,0), inside))
-    grid = np.full(inside, CELLS[FIELD]); grid[agent], grid[target] = CELLS[AGENT], CELLS[TARGET]
-    grid = np.pad(grid, 1, constant_values=CELLS[WALL])
-    return grid
+    raise(NotImplementedError)
+    # inside = tuple(s-2 for s in self.size)
+    # agent = tuple(np.random.randint((0,0), inside)); target = agent
+    # while target is agent: target = tuple(np.random.randint((0,0), inside))
+    # grid = np.full(inside, CELLS[FIELD]); grid[agent], grid[target] = CELLS[AGENT], CELLS[TARGET]
+    # grid = np.pad(grid, 1, constant_values=CELLS[WALL])
+    # return grid
+  
+  def _validate(self, board, error=True):
+    def _findPath(b, v, p, t, d, md):
+      """Find the path with the shortest distance _d_ in maze _b_ starting from _p_ to _t_, 
+      using current min distance _md_ and visited states _v_ """
+      if all(a==b for a,b in zip(p,t)): return min(d, md) # Break Condition
+      v[p] = True; next = [tuple(n) for n in self.iterate_actions(p, condition=self.action_possible).values()]
+      dist = [_findPath(b, v, n, t, d+1, md) for n in next if (b[n]==CELLS[FIELD] and not v[n])]
+      v[p] = False; return min([md, *dist])
+    b = board.copy(); visited = np.full_like(board, False)
+    APOS = self.getpos(board=board, cell=AGENT); board[tuple(APOS)]=CELLS[FIELD]
+    TPOS = self.getpos(board=board, cell=TARGET); board[tuple(TPOS)]=CELLS[FIELD]
+    D = _findPath(board, visited, tuple(APOS), tuple(TPOS), 0, self.max_episode_steps+1)
+    if error: assert D < self.max_episode_steps+1, 'Environment not solvable.\n'+"\n".join(self.ascii(b))
+    return D
   
   def randomize(self, cell:str, board:np.ndarray) -> tuple[tuple[int], tuple[int]]:
     """Mutation function to randomize the position of `cell` on `board`"""
@@ -55,10 +87,14 @@ class Board(Base):
     board[oldpos] = CELLS[FIELD]; board[newpos] = CELLS[cell];
     return (oldpos, newpos)
     
-  def _board(self, layout:Optional[np.ndarray], remove=[])->np.ndarray:
-    """Get the current board according to an optional `layout` and the global random configuration"""
+  def _board(self, layout:Optional[np.ndarray], remove=[], update=False)->np.ndarray:
+    """Get the current board according to an optional `layout` and the global random configuration, optionally update globally"""
     if self.explore: remove = [*remove, TARGET]
     board = layout.copy() if layout is not None else self._generate()
     [self.randomize(key[0], board) for key in RAND_KEYS if key in self.random]
     for rm in remove: board[tuple(self.getpos(board, rm))] = CELLS[FIELD]
+    if update:
+      if self._validate(board.copy(), error=False) > self.max_episode_steps: 
+        return self._board(layout,remove,update)
+      self.board = board
     return board 
