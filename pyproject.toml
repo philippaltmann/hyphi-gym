@@ -21,8 +21,7 @@ classifiers = [
 ]
 dependencies = [
     'gymnasium>=0.26',
-    'pygame>=2.4',      # Render 2D
-    'bpy==3.5.0',       # Render 3D
+    'mujoco==2.3.3',    # Continuous Envs
     'Pillow>=9.5',      # Save images
     'moviepy>=1.0',     # Save videos
     'matplotlib>=3.5',  # Plot heatmaps
