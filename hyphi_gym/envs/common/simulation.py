@@ -1,5 +1,20 @@
+"""
+MuJoCo-Based Physics Simulation Base Class insipired by:
+- 'Gymnasium Robotics' by Rodrigo de Lazcano, Kallinteris Andreas, Jun Jet Tai, Seungjae Ryan Lee, Jordan Terry (https://github.com/Farama-Foundation/Gymnasium-Robotics)
+- 'D4RL: Datasets for Deep Data-Driven Reinforcement Learning' by Justin Fu, Aviral Kumar, Ofir Nachum, George Tucker, Sergey
+Levine. (https://github.com/Farama-Foundation/D4RL)
+
+Original Code aapted to integrate with hyphi maze generation and env registration
+
+Things to maybe add in the future:
+- continuing_task: Do not reset on target 
+-     EzPickle.__init__(self, maze_map, render_mode, reward_type, continuing_task, **kwargs, )
+
+"""
+
 from typing import Optional, Union
 from os import path; import tempfile
+import os
 import xml.etree.ElementTree as ET
 import numpy as np
 
@@ -16,11 +31,11 @@ except ImportError as e:
   import gymnasium
   raise gymnasium.error.DependencyNotInstalled( f"{e}. (HINT: you need to install mujoco, run `pip install gymnasium[mujoco]`.)")
 
-from hyphi_gym.envs.common import Board
+from hyphi_gym.envs.common.board import *
 
 HEIGHT = 1.0
 
-class Simulation(Board):
+class Simulation(Board): # Inherits from Board just for reference to vars, init should be done via maze or holes
   """Mujoco Based Simulation Base Class adapted from gymnasium MujocoEnv for hyphi board envs
   Can be used for 3D simulation of continuous board envs and rendering of hyphi grids"""
 
@@ -40,21 +55,28 @@ class Simulation(Board):
 
   def setup_world(self, layout:np.ndarray):
     """Helper function to generate a simulation from a board-based `layout`"""
-    tree = ET.parse(self.base_xml); 
-    worldbody = tree.find(".//worldbody"); assert worldbody is not None
-    _pos = lambda p: ' '.join(map(str, np.append(self._pos(p), HEIGHT/2))); _size = ' '.join([str(HEIGHT/2)]*3)
-    block = lambda p: ET.SubElement(worldbody, "geom", type="box", material="wall", pos=_pos(p), size=_size) 
-    [block((i,j)) for i,row in enumerate(layout) for j, cell in enumerate(row) if cell == self.CELLS[self.WALL]]
-
+    tree = ET.parse(self.base_xml); worldbody = tree.find(".//worldbody"); assert worldbody is not None
+    _str = lambda list: ' '.join(map(str,list))
+    block = lambda p,cell: ET.SubElement(worldbody, "geom", type="box", material=cell, 
+                                         pos=_str([*self._pos(p), (1 if cell=='#' else -1)*HEIGHT/2]), 
+                                         size=_str([HEIGHT/2,HEIGHT/2,HEIGHT/(1 if cell=='#' else 2)]))
+    
+    static = [CELLS[c] for c in [WALL, FIELD]]
+    lookup = { CELLS[WALL]: WALL, CELLS[FIELD]: FIELD, 
+               CELLS[AGENT]: FIELD, CELLS[TARGET]: FIELD}
+    [block((i,j), lookup[cell]) for i,row in enumerate(layout) for j, cell in enumerate(row) if cell in lookup.keys()]
     # Set initial agent position, velocity and target position, add ground
-    self.i_apos, self.i_avel = self._pos(self.getpos(layout, self.AGENT)), np.array([0,0])
-    self.i_tpos = self._pos(self.getpos(layout, self.TARGET))
+    self.i_apos, self.i_avel = self._pos(self.getpos(layout, AGENT)), np.array([0,0])
+    self.i_tpos = self._pos(self.getpos(layout, TARGET))
     
     asset = tree.find(".//asset"); assert asset is not None  # Add Grid texture and floor plane
-    if self.grid: ET.SubElement(asset, "material", name="floor", texture="grid", specular="0", shininess="0",
-                                texrepeat=' '.join([str(s) for s in self.size]), rgba=".4 .4 .4 .8")
-    ET.SubElement(worldbody, "geom", name="ground", material="floor", type="plane", 
-                  pos="0 0 0", size=' '.join([str(s/2) for s in (*self.size,.1)]))
+    if self.grid:
+      ET.SubElement(asset, "material", name="floor", texture="grid", rgba=".4 .4 .4 .8",
+                    specular="0", shininess="0", texrepeat=' '.join([str(s) for s in self.size]))
+      agent = tree.find('.//worldbody/body/body'); assert agent is not None
+      for part in ['Body', 'Ears', 'Eyes', 'Hat', 'Lamp', 'Mouth', 'White']:
+        ET.SubElement(asset, "mesh", file=f'{os.getcwd()}/hyphi_gym/assets/Agent/{part}.obj')
+        ET.SubElement(agent, "geom", mesh=part, material=part, type="mesh")
 
     with tempfile.TemporaryDirectory() as tmp_dir: self.model_path = path.join(path.dirname(tmp_dir), "world.xml")
     tree.write(self.model_path)  # Save new xml with maze to a temporary file
@@ -72,7 +94,17 @@ class Simulation(Board):
     self.init_qpos, self.init_qvel = self.data.qpos.ravel().copy(), self.data.qvel.ravel().copy()
     self.mujoco_renderer = MujocoRenderer(self.model, self.data, default_cam_config=default_cam_config)
     self.target_site_id = MujocoModelNames(self.model).site_name2id["target"]
-    if not self.grid: self.metadata["render_fps"] = int(np.round(1.0 / self.model.opt.timestep * self.frame_skip))
+    if self.grid: self.agent_id = MujocoModelNames(self.model).body_name2id["Agent"]
+    # if self.grid: self.agent_id = MujocoModelNames(self.model).geom_name2id["Agent"]
+    else: self.metadata["render_fps"] = int(np.round(1.0 / self.model.opt.timestep * self.frame_skip))
+
+  def update_world(self, action:int, position: Union[np.ndarray, tuple], cell: str):
+    quat = np.array([([.7071068,.7071068,0,0],[-0.5,-0.5,0.5,0.5],[0,0,.7071068,.7071068],[0.5,0.5,0.5,0.5])[action]])
+    assert self.model is not None and self.agent_id is not None
+    self.model.body_quat[self.agent_id] = quat # Set rotation according to action
+    if cell == HOLE: self.set_state(qpos=self._pos((-100,-100)))
+    if cell == TARGET: self.model.site_pos[self.target_site_id] = self.target - np.array([0,0,1])
+    if cell in [FIELD, TARGET]: self.set_state(qpos=self._pos(position))
 
   def reset_world(self):
     """Reset simulation and reposition agent and target to respective `i_pos`"""
@@ -85,8 +117,8 @@ class Simulation(Board):
   def randomize(self, cell:str, board:np.ndarray)->tuple[tuple[int],tuple[int]]:
     """Update model upon randomization"""
     oldpos, newpos = super().randomize(cell, board)
-    if cell == self.AGENT: self.i_apos = self._pos(newpos)
-    if cell == self.TARGET: self.i_tpos = self._pos(newpos)
+    if cell == AGENT: self.i_apos = self._pos(newpos)
+    if cell == TARGET: self.i_tpos = self._pos(newpos)
     return oldpos, newpos
 
   ### Gym functionality ### 
