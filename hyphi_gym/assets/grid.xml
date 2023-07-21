@@ -6,15 +6,22 @@
     <geom friction=".5 .1 .1" density="1000" margin="0.002" condim="1" contype="2" conaffinity="1"/>
   </default>
   <asset>
+    <material name="Body" specular="0.5" shininess="0.36" rgba="0.000000 0.520996 0.791299 1.000000"/>
+    <material name="Ears" specular="0.5" shininess="0.81" rgba="0.791299 0.040915 0.008568 1.000000"/>
+    <material name="Eyes" specular="0.5" shininess="0.81" rgba="0.000000 0.080382 0.603827 1.000000"/>
+    <material name="Hat" specular="0.5" shininess="0.36" rgba="0.063724 0.021981 0.132868 1.000000"/>
+    <material name="Lamp" specular="0.5" shininess="1.0" rgba="1.000000 0.334208 0.032648 1.000000"/>
+    <material name="Mouth" specular="0.5" shininess="0.49" rgba="0.012983 0.045186 0.266355 1.000000"/>
+    <material name="White" specular="0.5" shininess="1.0" rgba="0.603827 0.603827 0.603827 1.000000"/>
     <texture type="2d" name="grid" builtin="checker" rgb1="1 1 1" rgb2="1 1 1" mark="edge" width="100" height="100"/>
-    <material name="agent" emission="0" specular="0" shininess="1" reflectance="1" rgba="0 .6 .7 1"/>
     <material name="target" emission=".2" specular=".5" shininess=".7" reflectance="0" rgba="0 .8 .37 1"/>
-    <material name="wall" texture="grid" texrepeat="1 1" emission="0" specular="0" shininess="1" reflectance="1" rgba=".2 .2 .2 1"/>
+    <material name="#" texture="grid" texrepeat="1 1" emission="0" specular="0" shininess="1" reflectance="1" rgba=".2 .2 .2 1"/>
+    <material name=" " texture="grid" texrepeat="1 1" emission="0" specular="0" shininess="1" reflectance="1" rgba=".4 .4 .4 1"/>
   </asset>
   <visual><headlight ambient=".4 .4 .4" diffuse=".8 .8 .8" specular="0.1 0.1 0.1"/></visual>
   <worldbody>
-    <body name="particle" pos="0 0 0">
-      <geom name="particle_geom" type="sphere" size=".3" pos="0 0 .3" contype="1" material="agent"/>
+    <body name="particle" pos="0 0 0" >
+      <body name="Agent" pos="0 0 0" quat="0 0 0.7071 0.7071"></body>
       <joint name="ball_x" type="slide" pos="0 0 0" axis="1 0 0"/>
       <joint name="ball_y" type="slide" pos="0 0 0" axis="0 1 0"/>
     </body>
