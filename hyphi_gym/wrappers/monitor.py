@@ -1,10 +1,12 @@
-import time; import numpy as np; import torch as th
+import time; import numpy as np; import torch as th; import warnings
 from typing import Any, Dict, List, SupportsFloat, Tuple
 
 import gymnasium as gym
 from gymnasium.core import ActType, ObsType
 from moviepy.video.io.ImageSequenceClip import ImageSequenceClip
 from hyphi_gym.utils import stdout_redirected
+
+from PIL import Image
 
 class Monitor(gym.Wrapper[ObsType, ActType, ObsType, ActType]):
   """ A monitor wrapper for Gym environments, it is used to know the episode reward, length, time and other data.
@@ -39,7 +41,7 @@ class Monitor(gym.Wrapper[ObsType, ActType, ObsType, ActType]):
     if terminated or truncated:
       self.needs_reset = True; ep_rew = sum(self.rewards); ep_len = len(self.rewards)
       ep_info = {"r": round(ep_rew, 6), "l": ep_len, "t": round(time.time() - self.t_start, 6), 'history': self._history()}
-      self._episode_returns.append(ep_rew); self._termination_reasons.append(info.pop('termination_reason'))
+      self._episode_returns.append(ep_rew); #self._termination_reasons.append(info.pop('termination_reason'))
       self._episode_lengths.append(ep_len); self._episode_times.append(time.time() - self.t_start)
       info["episode"] = ep_info
     self._total_steps += 1
@@ -47,13 +49,25 @@ class Monitor(gym.Wrapper[ObsType, ActType, ObsType, ActType]):
 
   def save_video(self, path, reset=True):
     """Saves current videobuffer to file"""
-    with stdout_redirected(): ImageSequenceClip(self._frame_buffer, fps=5).write_videofile(path)
+    with stdout_redirected(): 
+      if '.gif' in path:
+        from PIL import Image
+        if isinstance(self._frame_buffer[0], np.ndarray): imgs = [Image.fromarray(img) for img in self._frame_buffer]
+        else: imgs = [img for img in self._frame_buffer]
+        imgs[0].save(path, save_all=True, append_images=imgs[1:], optimize=False, duration=1000/self.env.metadata['render_fps'], loop=0)
+      else: ImageSequenceClip(self._frame_buffer, fps=self.env.metadata['render_fps']).write_videofile(path)
     if reset: self._frame_buffer = []
 
   def write_video(self, writer, label, step):
     """Adds current videobuffer to tensorboard"""
+    if len(self._frame_buffer) > 100: warnings.warn("Saving videos longer than one episode can be slow.")
     video = th.tensor(np.array(self._frame_buffer)).unsqueeze(0).swapaxes(3,4).swapaxes(2,3)
     writer.add_video(label,video, global_step=step); self._frame_buffer = []
+
+  def save_image(self, path):
+    render = self.env.render(); assert render is not None
+    if isinstance(render, np.ndarray): render = Image.fromarray(render)
+    assert isinstance(render, Image.Image); render.save(path)
   
   @property
   def total_steps(self) -> int: return self._total_steps
