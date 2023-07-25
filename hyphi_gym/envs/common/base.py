@@ -1,5 +1,4 @@
-import gymnasium as gym; 
-from typing import Optional, SupportsFloat
+import gymnasium as gym; from typing import Optional
 from gymnasium.utils.seeding import np_random
 from gymnasium.envs.registration import EnvSpec
 
@@ -46,11 +45,11 @@ class Base(gym.Env):
     self.reward_buffer, self.termination_resaons = [], []; 
     return super().reset(**kwargs)
 
-  def _step(self, action:gym.spaces.Space) -> tuple[gym.spaces.Space,SupportsFloat, bool, bool, dict]: 
+  def _step(self, action:gym.spaces.Space) -> tuple[gym.spaces.Space, float, bool, bool, dict]: 
     """Overwrite this function to perfom step mutaions on the actual environment"""
     raise(NotImplementedError)
   
-  def step(self, action:gym.spaces.Space) -> tuple[gym.spaces.Space, SupportsFloat, bool, bool, dict]:
+  def step(self, action:gym.spaces.Space) -> tuple[gym.spaces.Space, float, bool, bool, dict]:
     """Gymnasium compliant fucntion to step the environment with `action` using the internal `_step`"""
     state, reward, terminated, truncated, info = self._step(action); self.reward_buffer.append(reward)
     if self.explore: reward = 0
