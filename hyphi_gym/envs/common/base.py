@@ -1,5 +1,6 @@
 from typing import Any, List, Optional, SupportsFloat
-import gymnasium as gym; from gymnasium.utils import seeding
+import gymnasium as gym; 
+from gymnasium.utils.seeding import np_random
 from gymnasium.envs.registration import EnvSpec
 
 class Base(gym.Env):
@@ -38,7 +39,7 @@ class Base(gym.Env):
     """Function to mutate the internal environment spec (e.g., for adapting max_episode_steps)"""
     self._spec = {k:v for k,v in spec.__dict__.items() if k not in ['namespace','name','version']}
 
-  def seed(self, seed:Optional[int]=None): self.np_random, self._seed = seeding.np_random(seed)
+  def seed(self, seed:Optional[int]=None): self.np_random, self._seed = np_random(seed)
 
   def reset(self, **kwargs)->tuple[gym.spaces.Space, dict[str, Any]]:
     """Gymnasium compliant function to reset the environment""" 
