@@ -1,22 +1,14 @@
-"""
-MuJoCo-Based Physics Simulation Base Class insipired by:
+""" MuJoCo-Based Physics Simulation Base Class insipired by:
 - 'Gymnasium Robotics' by Rodrigo de Lazcano, Kallinteris Andreas, Jun Jet Tai, Seungjae Ryan Lee, Jordan Terry (https://github.com/Farama-Foundation/Gymnasium-Robotics)
 - 'D4RL: Datasets for Deep Data-Driven Reinforcement Learning' by Justin Fu, Aviral Kumar, Ofir Nachum, George Tucker, Sergey
 Levine. (https://github.com/Farama-Foundation/D4RL)
 
 Original Code aapted to integrate with hyphi maze generation and env registration
-
-Things to maybe add in the future:
-- continuing_task: Do not reset on target 
--     EzPickle.__init__(self, maze_map, render_mode, reward_type, continuing_task, **kwargs, )
-
 """
 
-from typing import Optional, Union
-from os import path; import tempfile
-import os
-import xml.etree.ElementTree as ET
-import numpy as np
+import os; import tempfile; from typing import Optional, Union
+import numpy as np; import xml.etree.ElementTree as ET
+
 
 try:
   from mujoco import MjData as MujocoData                           # type: ignore
@@ -33,7 +25,7 @@ except ImportError as e:
 
 from hyphi_gym.envs.common.board import *
 
-HEIGHT = 1.0
+SIZE = 1.0; HEIGHT = 1.0
 
 class Simulation(Board): # Inherits from Board just for reference to vars, init should be done via maze or holes
   """Mujoco Based Simulation Base Class adapted from gymnasium MujocoEnv for hyphi board envs
@@ -48,8 +40,8 @@ class Simulation(Board): # Inherits from Board just for reference to vars, init 
     """Init mujoco simulation using `frame_skip` and optionaly `grid` mode. For state stochasticity
       use `position_noise`. To generate a model, supply core via `self.base_xml`. If `self.layout` 
     is not set upon init, use `setup_world(layout)` and `load_world()` once available. """
-    self.frame_skip = frame_skip; self.grid = grid; self.position_noise = position_noise
-    self.width, self.height = self.metadata['render_resolution']
+    self.frame_skip = frame_skip; self.grid = grid; self.position_noise = position_noise;
+    self.width, self.height = self.metadata['render_resolution']; self._target_active = False
     if self.layout is not None: self.setup_world(self.layout)
     self.load_world() 
 
@@ -57,11 +49,10 @@ class Simulation(Board): # Inherits from Board just for reference to vars, init 
     """Helper function to generate a simulation from a board-based `layout`"""
     tree = ET.parse(self.base_xml); worldbody = tree.find(".//worldbody"); assert worldbody is not None
     _str = lambda list: ' '.join(map(str,list))
-    block = lambda p,cell: ET.SubElement(worldbody, "geom", type="box", material=cell, 
-                                         pos=_str([*self._pos(p), (1 if cell=='#' else -1)*HEIGHT/2]), 
-                                         size=_str([HEIGHT/2,HEIGHT/2,HEIGHT/(1 if cell=='#' else 2)]))
-    
-    static = [CELLS[c] for c in [WALL, FIELD]]
+    block = lambda p,cell: ET.SubElement(
+      worldbody, "geom", type="box", material=cell, 
+      pos=_str([*self._pos(p), (1 if cell=='#' else -1)*HEIGHT/2]), 
+      size=_str([SIZE/2,SIZE/2,HEIGHT/(1 if cell=='#' else 2)]))
     lookup = { CELLS[WALL]: WALL, CELLS[FIELD]: FIELD, 
                CELLS[AGENT]: FIELD, CELLS[TARGET]: FIELD}
     [block((i,j), lookup[cell]) for i,row in enumerate(layout) for j, cell in enumerate(row) if cell in lookup.keys()]
@@ -72,20 +63,20 @@ class Simulation(Board): # Inherits from Board just for reference to vars, init 
     asset = tree.find(".//asset"); assert asset is not None  # Add Grid texture and floor plane
     if self.grid:
       ET.SubElement(asset, "material", name="floor", texture="grid", rgba=".4 .4 .4 .8",
-                    specular="0", shininess="0", texrepeat=' '.join([str(s) for s in self.size]))
+                    specular="0", shininess="0", texrepeat=' '.join([str(s) for s in self.size[::-1]]))
       agent = tree.find('.//worldbody/body/body'); assert agent is not None
       for part in ['Body', 'Ears', 'Eyes', 'Hat', 'Lamp', 'Mouth', 'White']:
         ET.SubElement(asset, "mesh", file=f'{os.getcwd()}/hyphi_gym/assets/Agent/{part}.obj')
         ET.SubElement(agent, "geom", mesh=part, material=part, type="mesh")
 
-    with tempfile.TemporaryDirectory() as tmp_dir: self.model_path = path.join(path.dirname(tmp_dir), "world.xml")
+    with tempfile.TemporaryDirectory() as tmp_dir: self.model_path = os.path.join(os.path.dirname(tmp_dir), "world.xml")
     tree.write(self.model_path)  # Save new xml with maze to a temporary file
 
   def load_world(self):
     """Helper function to load a generated world from `self.model_path` falling back to `self.base_xml`"""
     # Set camera to top-down view for 2D rendering and isometric view for 3D rendering
-    default_cam_config = {"azimuth": 90, "elevation": -90,
-                          "distance": sum(self.size) / 1.5 } if self.render_mode == '2D' else { 
+    default_cam_config = {"azimuth": 90, "elevation": -90, 'lookat': np.array([0,0,0]),
+                          "distance": sum(self.size) / 4*3 } if self.render_mode == '2D' else { 
                           "azimuth": 135, "elevation": -60, "distance": sum(self.size) / 1.125,  
                           "lookat": np.append(np.array(self.size) / np.array([15, -15]), 0) } 
     # Setup model, data, renderer and link movable parts
@@ -95,7 +86,6 @@ class Simulation(Board): # Inherits from Board just for reference to vars, init 
     self.mujoco_renderer = MujocoRenderer(self.model, self.data, default_cam_config=default_cam_config)
     self.target_site_id = MujocoModelNames(self.model).site_name2id["target"]
     if self.grid: self.agent_id = MujocoModelNames(self.model).body_name2id["Agent"]
-    # if self.grid: self.agent_id = MujocoModelNames(self.model).geom_name2id["Agent"]
     else: self.metadata["render_fps"] = int(np.round(1.0 / self.model.opt.timestep * self.frame_skip))
 
   def update_world(self, action:int, position: Union[np.ndarray, tuple], cell: str):
@@ -103,15 +93,22 @@ class Simulation(Board): # Inherits from Board just for reference to vars, init 
     assert self.model is not None and self.agent_id is not None
     self.model.body_quat[self.agent_id] = quat # Set rotation according to action
     if cell == HOLE: self.set_state(qpos=self._pos((-100,-100)))
-    if cell == TARGET: self.model.site_pos[self.target_site_id] = self.target - np.array([0,0,1])
+    if cell == TARGET: self._toggle_target(False)
     if cell in [FIELD, TARGET]: self.set_state(qpos=self._pos(position))
+
+  def _toggle_target(self, active:Optional[bool]=None): 
+    """Toggles activity of the target site, can be forced using `active`"""
+    assert self.model is not None
+    self._target_active = active if active is not None else self._target_active
+    self.model.site_pos[self.target_site_id] = self.target - np.array([0,0,1-self._target_active])
+    self.set_state()
 
   def reset_world(self):
     """Reset simulation and reposition agent and target to respective `i_pos`"""
     if self.layout is None: self.setup_world(self.board); self.load_world()
     assert self.model is not None; mujoco_reset(self.model, self.data)
     self.target = np.append(self._noisy(self.i_tpos), HEIGHT/2)
-    self.model.site_pos[self.target_site_id] = self.target
+    self._toggle_target(True)
     self.set_state(*self.agent)
   
   def randomize(self, cell:str, board:np.ndarray)->tuple[tuple[int],tuple[int]]:
@@ -122,18 +119,21 @@ class Simulation(Board): # Inherits from Board just for reference to vars, init 
     return oldpos, newpos
 
   ### Gym functionality ### 
+  def render(self) -> Optional[np.ndarray]: 
+    return self.mujoco_renderer.render('rgb_array')
+
   def close(self): self.mujoco_renderer.close()
 
   def state_vector(self) -> np.ndarray:
     """Return the position and velocity joint states of the model"""
     assert self.data is not None, "No model loaded"
-    return np.concatenate([self.data.qpos, self.data.qvel]).ravel()
+    return np.concatenate([self.data.qpos[:2], self.data.qvel[:2]]).ravel()
 
   def set_state(self, qpos:Optional[np.ndarray]=None, qvel:Optional[np.ndarray]=None):
     """Set the position `qpos` and velocity `qvel` of the agent."""
     assert self.data is not None and self.model is not None, "No model loaded"
-    if qpos is not None: assert qpos.shape == (self.model.nq,); self.data.qpos[:]=np.copy(qpos)
-    if qvel is not None: assert qvel.shape == (self.model.nq,); self.data.qvel[:]=np.copy(qvel)
+    if qpos is not None: self.data.qpos[:2]=qpos.copy()
+    if qvel is not None: self.data.qvel[:2]=qvel.copy()
     if self.model and self.model.na == 0: self.data.act[:] = None
     mujoco_forward(self.model, self.data)
 
@@ -153,7 +153,7 @@ class Simulation(Board): # Inherits from Board just for reference to vars, init 
 
   def _pos(self, idx: Union[np.ndarray, tuple]) -> np.ndarray:
     """Converts a cell index `(i,j)` to x and y position in the MuJoCo simulation"""
-    a = np.array; swap = a((-1,1)); return (((a(idx) + 0.5) * swap)[::-1] + a(self.size)/2 * swap)
+    a = np.array; swap = a((-1,1)); return (((a(idx) + 0.5) * swap)[::-1] + a(self.size[::-1])/2 * swap )
   
   def _noisy(self, pos: np.ndarray) -> np.ndarray:
     """Pass an x,y coordinate and it will return the same coordinate with uniform noise added"""

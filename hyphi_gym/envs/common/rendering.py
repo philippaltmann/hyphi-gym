@@ -1,3 +1,4 @@
+""" Vizualisation helper to render hyphi-gym board based envs using blender"""
 import tempfile; import time; import os; import math; 
 import numpy as np; from PIL import Image
 from hyphi_gym.utils import stdout_redirected
