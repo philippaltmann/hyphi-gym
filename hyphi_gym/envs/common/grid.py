@@ -21,7 +21,7 @@ class Grid(Simulation, Rendering):
   def render(self) -> Optional[np.ndarray]:
     """Return rendering of current state as np array if render_mode set"""
     if self.render_mode not in self.metadata['render_modes']: return 
-    return self.renderer.render3D(self)
+    return self.renderer.render(self)
 
   """Gym API functions"""
   def reset(self, **kwargs)-> tuple[np.ndarray,dict]:
