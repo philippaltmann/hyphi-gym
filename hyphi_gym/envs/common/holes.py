@@ -23,12 +23,12 @@ class Holes(Board):
   :param level: Configuration to use [Train|Shift]
   :param random: optional list of features to be stochastic
     supporting layout, agent-, and target-placement"""
-  def __init__(self, level, random=[], **kwargs): 
+  def __init__(self, level:str, random=[], **kwargs): 
     self._name = f'Holes{level}'; layout = None if 'Layouts' in random else LEVELS[level]
     Board.__init__(self, size=(7,9), layout=layout, random=random, RADD=['Layouts'], **kwargs)
 
   def _generate(self):
-    """"""
+    """Random generator for holey grids, placing 6 holes at random positions within a 7x9 gird"""
     board = self._grid(['#########', '#A     T#', '#       #', '#       #', '#       #', '#       #', '#########']) 
     holes = 0 
     while holes < NUM_HOLES:
