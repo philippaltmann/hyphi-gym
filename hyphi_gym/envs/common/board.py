@@ -1,5 +1,4 @@
-import numpy as np
-from typing import Any, Dict, Tuple, Optional, Union
+import numpy as np; from typing import Optional, Union
 from hyphi_gym.envs.common import Base
 
 # State Types
@@ -42,27 +41,21 @@ class Board(Base):
     """Position helper for finding the vector position of `cell` on the `board` or internal board"""
     return np.array(tuple(zip(*np.where((board if board is not None else self.board) == CELLS[cell])))[0]).astype(int)
   
-  def newpos(self, position:Union[np.ndarray, Tuple[int,int]], action:int, n=1) -> Tuple[int,int]:
+  def newpos(self, position:Union[np.ndarray, tuple[int,int]], action:int, n=1) -> tuple[int,int]:
     """Action helper mutating a `position` tuple by appying `action` `n`-times"""
     return tuple(np.array(position)+[(-n,0),(0,n),(n,0),(0,-n)][action])
 
-  def iterate_actions(self, p:Tuple[int,int], n=1, condition=lambda act,pos,n: True) -> Dict[int,Tuple[int,int]]: 
+  def iterate_actions(self, p:tuple[int,int], n=1, condition=lambda act,pos,n: True) -> dict[int,tuple[int,int]]: 
     """Return possible n actions in a bounded box given a position p and their mutated positions"""
     return {a: self.newpos(p,a,n) for a in ACTIONS if condition(a,p,n)}
   
-  def action_possible(self, act:int, pos:Tuple[int,int], n=1)->bool: 
+  def action_possible(self, act:int, pos:tuple[int,int], n=1)->bool: 
     """Return possible `n` actions `act` in a bounded box given a position `pos`"""
     return [(pos[0]>n), (pos[1]<self.size[1]-n-1), (pos[0]<self.size[0]-n-1), (pos[1]>n)][act]
 
   def _generate(self)->np.ndarray:
     """Random generator function for a grid of size `self.size`"""
     raise(NotImplementedError)
-    # inside = tuple(s-2 for s in self.size)
-    # agent = tuple(np.random.randint((0,0), inside)); target = agent
-    # while target is agent: target = tuple(np.random.randint((0,0), inside))
-    # grid = np.full(inside, CELLS[FIELD]); grid[agent], grid[target] = CELLS[AGENT], CELLS[TARGET]
-    # grid = np.pad(grid, 1, constant_values=CELLS[WALL])
-    # return grid
   
   def _validate(self, board, error=True):
     def _findPath(b, v, p, t, d, md):
@@ -88,7 +81,8 @@ class Board(Base):
     return (oldpos, newpos)
     
   def _board(self, layout:Optional[np.ndarray], remove=[], update=False)->np.ndarray:
-    """Get the current board according to an optional `layout` and the global random configuration, optionally update globally"""
+    """Get the current board according to an optional `layout` and the global random configuration, 
+    optionally update globally"""
     if self.explore: remove = [*remove, TARGET]
     board = layout.copy() if layout is not None else self._generate()
     [self.randomize(key[0], board) for key in RAND_KEYS if key in self.random]
