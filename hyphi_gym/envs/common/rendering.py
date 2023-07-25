@@ -1,9 +1,11 @@
-import os; import math; import numpy as np
-from mathutils import Vector; from PIL import Image
+import tempfile; import time; import os; import math; 
+import numpy as np; from PIL import Image
 from hyphi_gym.utils import stdout_redirected
 from hyphi_gym.envs.common.board import *
-with stdout_redirected(): import bpy;
-import tempfile; import time 
+try: 
+  with stdout_redirected(): import bpy; from mathutils import Vector; 
+except ImportError as e: 
+  raise ImportError(f"{e}. (HINT: you need to install bpy, run `pip install bpy`.)")
 
 SCENE = f'{os.path.dirname(__file__)}/../../assets/env.blend'
 
@@ -14,7 +16,6 @@ class Rendering(Board):
     with tempfile.TemporaryDirectory() as tmp: self.metadata['tmp'] = tmp
     ox, oy = (s/20+.25 for s in self.size)
     self._pos = lambda x,y,t: Vector((x*.1-ox,y*.1-oy, -.2 if t == ' ' else -.1))
-    # self._pos = lambda x,y,t: Vector((x*.1-.05,y*.1-.05, -.01 if t == ' ' else .09))
     if self.layout is not None: self.setup3D(self.layout)
 
   def setup3D(self, layout:np.ndarray): 
@@ -50,8 +51,7 @@ class Rendering(Board):
     if Cell == TARGET: bpy.data.objects['T'].hide_render = True  # Hide Overlap Components # type: ignore 
     if Cell == HOLE: bpy.data.objects['A'].hide_render = True    # Hide Overlap Components # type: ignore 
     
-  def render3D(self):
-    start = time.time(); bpy.ops.render.render(); print(f"Render took {time.time()-start}") # type: ignore
+  def render(self) -> Optional[np.ndarray]: 
+    start = time.time(); bpy.ops.render.render(); print(f"Blender Render took {time.time()-start}") # type: ignore
     bpy.data.images['Render Result'].save_render(self.metadata['tmp'])                      # type: ignore
-    img = np.asarray(Image.open(self.metadata['tmp']))[:,:,:3]
-    return Image.open(self.metadata['tmp']).copy() #img
+    return np.asarray(Image.open(self.metadata['tmp']))[:,:,:3]
