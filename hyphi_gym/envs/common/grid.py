@@ -1,14 +1,9 @@
-from os import path
-import numpy as np
-import gymnasium as gym 
-
-from numpy.typing import NDArray
-from typing import Any, Dict, Tuple, Optional, Union
+import gymnasium as gym ; import numpy as np
+from typing import Optional; from os import path
 
 from hyphi_gym.envs.common.board import *
 from hyphi_gym.envs.common.rendering import Rendering
 from hyphi_gym.envs.common.simulation import Simulation
-
 
 class Grid(Simulation, Rendering): 
   base_xml = path.join(path.dirname(path.realpath(__file__)), "../../assets/grid.xml")
@@ -23,30 +18,34 @@ class Grid(Simulation, Rendering):
       self.renderer = Rendering if render_mode == 'blender' else Simulation
       self.renderer.__init__(self, grid=True, **simargs)
         
-  def render(self):
+  def render(self) -> Optional[np.ndarray]:
+    """Return rendering of current state as np array if render_mode set"""
     if self.render_mode not in self.metadata['render_modes']: return 
-    if self.render_mode == 'blender': return self.render3D()
-    return self.mujoco_renderer.render('rgb_array')
+    return self.renderer.render3D(self)
 
   """Gym API functions"""
-  def reset(self, **kwargs):
+  def reset(self, **kwargs)-> tuple[np.ndarray,dict]:
     super().reset(**kwargs); self._board(self.layout, update=True)
     if self.layout is None: self.reward_range = self._reward_range(self.board.copy())
     if self.render_mode is not None: self.renderer.reset_world(self)
     return self.board.flatten(), {}
     
-  def _reward(self, board, action):
+  def _reward(self, board:np.ndarray, action:int)->tuple[float, Optional[str], np.ndarray, tuple[int,int], str]:
+    """Calculate the reward of `action` for the current `borad`.
+    :Return: reward, termination reason, agent positon, new position, new field"""
     reward, termination = STEP_COST, None; position = self.getpos(board)
     target = self.newpos(position, action); field = CHARS[board[target]] 
     if field == TARGET: termination, reward = 'GOAL', TARGET_REWARD + STEP_COST
     if field == HOLE: termination, reward = 'FAIL', HOLE_COST + STEP_COST
     return reward, termination, position, target, field
   
-  def _reward_range(self, board):
+  def _reward_range(self, board:np.ndarray):
+    """Given a `board` layout, calculates the min and max returns"""
     maximum_reward = -100 if self.explore else TARGET_REWARD + self._validate(board) * STEP_COST
     self.reward_range = (self.max_episode_steps*STEP_COST, maximum_reward); return self.reward_range
 
-  def _step(self, action:int) -> Tuple[NDArray, int, bool, bool, Dict[str,Any]]:
+  def _step(self, action:int) -> tuple[np.ndarray, float, bool, bool, dict]:
+    """Helper function to step the environment, executing `action`, returning its consequences"""
     reward, termination, position, target, field = self._reward(self.board, action)
     info = {'termination_reason': termination} if termination is not None else {} 
     if field is not WALL: self.board[tuple(position)] = CELLS[FIELD]  # Move Agent 
@@ -56,7 +55,7 @@ class Grid(Simulation, Rendering):
     
   # Helperfunctions for plotting heatmaps
   def iterate(self, function = lambda e,s,a,r: r, fallback=None):
-    """Iterate all possible actions in all env states, apply `funcion(env, state, action)`
+    """Iterate all possible actions in all env states, apply `funcion(env, state, action, reward)`
     function: `f(env, state, action, reward()) => value` to be applied to all actions in all states default: return envreward
     :returns: ENVxACTIONS shaped function results"""
     empty_board = self._board(self.layout, [AGENT]); fallback = [fallback] * len(ACTIONS)
