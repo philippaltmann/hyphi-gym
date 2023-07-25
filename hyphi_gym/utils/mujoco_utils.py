@@ -1,4 +1,4 @@
-from typing import Any, Dict, Tuple, Union
+from typing import Union
 
 try:
   from mujoco import MjModel as MujocoModel           # type: ignore
@@ -10,7 +10,7 @@ except ImportError as e:
 
 MJ_OBJ_TYPES = ["mjOBJ_BODY","mjOBJ_JOINT","mjOBJ_GEOM","mjOBJ_SITE","mjOBJ_CAMERA","mjOBJ_ACTUATOR","mjOBJ_SENSOR"]
 
-def extract_mj_names(model: MujocoModel, obj_type: MujocoObject) -> Tuple[Union[Tuple[str, ...], Tuple[()]], Dict[str, int], Dict[int, Any]]:
+def extract_mj_names(model: MujocoModel, obj_type: MujocoObject) -> tuple[Union[tuple[str, ...], tuple[()]], dict[str, int], dict]:
   if obj_type == MujocoObject.mjOBJ_BODY: name_addr = model.name_bodyadr; n_obj = model.nbody
   elif obj_type == MujocoObject.mjOBJ_JOINT: name_addr = model.name_jntadr; n_obj = model.njnt
   elif obj_type == MujocoObject.mjOBJ_GEOM: name_addr = model.name_geomadr; n_obj = model.ngeom
