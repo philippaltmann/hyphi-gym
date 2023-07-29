@@ -22,7 +22,7 @@ class Point(Simulation):
     self.set_state(None, np.clip(self.data.qvel[:2], -5.0, 5.0)); self.do_simulation(action)
     obs = self.state_vector(); info = {}; distance = np.linalg.norm(obs[:2] - self.target[:2])
     reward = np.exp(-np.linalg.norm(distance))
-    if bool(distance <= AGENT_SIZE): info = {**info, 'termination_reason':'GOAL'}; self._toggle_target(False)
+    if bool(distance <= 2*AGENT_SIZE): info = {**info, 'termination_reason':'GOAL'}; self._toggle_target(False)
     if self.data.qpos[2] < -AGENT_SIZE: info = {**info, 'termination_reason':'FAIL'}
     return obs, reward, 'termination_reason' in info.keys(), False, info
   
