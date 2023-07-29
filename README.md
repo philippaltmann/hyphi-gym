@@ -3,22 +3,10 @@
 Gym-0.28 based compilation of benchmark environmens for various discrete action and observation spaces including different tasks.
 
 ## Holey Grid
-HoleyGrid             |  HoleyGridShift
-:-------------------------:|:-------------------------:
-![](hyphi_gym/assets/render/HoleyGrid.png)  |  ![](hyphi_gym/assets/render/HoleyGridShift.png)
+HoleyGrid | HoleyGridShift | HoleyGrids
+:--------:|:--------:|:--------:|
+![](hyphi_gym/assets/render/HoleyGrid.png) | ![](hyphi_gym/assets/render/HoleyGridShift.png) | ![](hyphi_gym/assets/render/HoleyGrids.gif)
 
-Random variations:
-Use any combination of the following keywords to ... randomized layouts:
-
-- Agent: Initial Agent position, static on reset
-- Agents: Agent position, random on reset
-- Target: Initial Target position, static on reset
-- Targets: Target position, random on reset
-- Layouts: Random hole placement on reset
-
-HoleyGridAgent(s) | HoleyGridTarget(s) | HoleyGridLayouts
-:----------------:|:----------------:|:----------------:|
-![](hyphi_gym/assets/render/HoleyGridAgents.gif) | ![](hyphi_gym/assets/render/HoleyGridTargets.gif) | ![](hyphi_gym/assets/render/HoleyGridLayouts.gif) |
 **Goal:** Navigate to the target state whilst avoiding unsafe states (holes).
 
 **Action Space:** $\mathcal{A}\in\{Up,Right,Down,Left\}$
@@ -72,8 +60,8 @@ https://github.com/Farama-Foundation/Metaworld
 
 ## Random Variations
 
-All environments comprise further random variations for both the agent's start- and the target-position. 
-In line with the maze naming convention, a singular keyword confirms to an initial random position, permanent over environment resets, where a plural keyword causes deterministic positioning on every reset. 
+All environments comprise further random variations for both the agent's start- and the target-position.
+In line with the maze naming convention, a singular keyword confirms to an initial random position, permanent over environment resets, where a plural keyword causes deterministic positioning on every reset.
 Thus, the following variations may be used within the `random` list:
 
 - ``Agent``: Initial position randomized once upon environment creation
@@ -81,6 +69,10 @@ Thus, the following variations may be used within the `random` list:
 - ``Agents``: Initial position randomized upon environment reset
 - ``Targets``: Target posision randomized upon environment reset
 
+
+HoleyGridAgent(s) | HoleyGridTarget(s) | Maze9Agent(s) | Maze9Target(s)
+:----------------:|:----------------:|:----------------:|:----------------:|
+![](hyphi_gym/assets/render/HoleyGridAgents.gif) | ![](hyphi_gym/assets/render/HoleyGridTargets.gif) | ![](hyphi_gym/assets/render/Maze9Agents.gif) | ![](hyphi_gym/assets/render/Maze9Targets.gif)
 
 ### MuJoCo Helpers
 
