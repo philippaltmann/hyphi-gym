@@ -16,7 +16,8 @@ class Rendering(Board):
     is not set upon init, use `setup3D(layout)` once available. """
     with tempfile.TemporaryDirectory() as tmp: self.metadata['tmp'] = tmp
     ox, oy = (s/20+.25 for s in self.size)
-    self._pos = lambda x,y,t: Vector((x*.1-ox,y*.1-oy, -.2 if t == ' ' else -.1))
+    self._bpos = lambda x,y,t: Vector((x*.1-ox,y*.1-oy, -.2 if t == ' ' else -.1))
+
     if self.layout is not None: self.setup3D(self.layout)
 
   def setup3D(self, layout:np.ndarray): 
@@ -28,7 +29,7 @@ class Rendering(Board):
       o = bpy.data.objects[t]                                                             # type: ignore
       if t in [AGENT, TARGET]: _place_3D(x, y, FIELD)
       else: o = o.copy(); bpy.context.collection.objects.link(o)                          # type: ignore
-      o.location = self._pos(x,y,t)
+      o.location = self._bpos(x,y,t)
 
     [_place_3D(x, y, CHARS[cell]) for x, row in enumerate(layout) for y, cell in enumerate(row)]
     for proto in [WALL,FIELD]: bpy.data.objects[proto].hide_render = True                 # type: ignore
@@ -40,19 +41,19 @@ class Rendering(Board):
 
   def reset_world(self):
     """Reset simulation and reposition agent and target to respective `i_pos`"""
-    if self.layout is None: self.setup3D(self.board) #; self.load_world()
-    bpy.data.objects['A'].location = self._pos(*[ *self.getpos(), 'A'])                    # type: ignore
+    if len(self.random) > 0: self.setup3D(self.board) 
+    bpy.data.objects['A'].location = self._bpos(*[ *self.getpos(), 'A'])                    # type: ignore
     bpy.data.objects['A'].rotation_euler = (0,0,0)      # Rotate towards action            # type: ignore
     bpy.data.objects['T'].hide_render = self.explore    # Unhide target                    # type: ignore
     bpy.data.objects['A'].hide_render =  False          # Unhide agent                     # type: ignore
   
   def update_world(self, action, mPos, Cell):
     bpy.data.objects['A'].rotation_euler = (0,0,[0.5,0,1.5,1][action] * math.pi)           # type: ignore
-    if Cell in [FIELD, TARGET]: bpy.data.objects['A'].location = self._pos(*[ *mPos, 'A']) # type: ignore
+    if Cell in [FIELD, TARGET]: bpy.data.objects['A'].location = self._bpos(*[ *mPos, 'A']) # type: ignore
     if Cell == TARGET: bpy.data.objects['T'].hide_render = True  # Hide Overlap Components # type: ignore 
     if Cell == HOLE: bpy.data.objects['A'].hide_render = True    # Hide Overlap Components # type: ignore 
     
-  def render(self) -> Optional[np.ndarray]: 
+  def render(self): # -> Image 
     start = time.time(); bpy.ops.render.render(); print(f"Blender Render took {time.time()-start}") # type: ignore
-    bpy.data.images['Render Result'].save_render(self.metadata['tmp'])                      # type: ignore
-    return np.asarray(Image.open(self.metadata['tmp']))[:,:,:3]
+    bpy.data.images['Render Result'].save_render(self.metadata['tmp']) # type: ignore
+    return Image.open(self.metadata['tmp']).copy()
