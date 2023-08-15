@@ -57,3 +57,5 @@ docs/_build/
 .envrc
 test
 .direnv
+
+.DS_STORE
