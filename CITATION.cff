@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+title: "hyphi gym"
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Philipp
+    family-names: Altmann
+    email: philipp@hyphi.co
+    orcid: 'https://orcid.org/0000-0003-1134-176X'
+repository-code: 'https://github.com/philippaltmann/hyphi-gym/'
+url: 'https://gymnasium.farama.org/'
+abstract: >-
+  A Gymnasium benchmark suite for evaluating the robustness 
+  and multi-task performance of reinforcement learning 
+  algorithms in various discrete and continuous environments.
+keywords:
+  - reinforcement learning
+  - robustness
+  - benchmark
+license: MIT
