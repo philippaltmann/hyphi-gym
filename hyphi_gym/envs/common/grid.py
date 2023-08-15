@@ -11,7 +11,7 @@ class Grid(Simulation, Rendering):
   metadata = {"render_modes": ["2D", "3D", "blender"], "render_fps": 5, "render_resolution": (720,720)} 
   def __init__(self, render_mode:Optional[str]=None, **simargs):
     self.observation_space = gym.spaces.MultiDiscrete(np.full(np.prod(self.size), len(CHARS)))
-    self.action_space = gym.spaces.Discrete(4); self.action_space.seed(self._seed)
+    self.action_space = gym.spaces.Discrete(4); self.action_space.seed(self._seed); self.reward_threshold = 'VARY'
     assert render_mode is None or render_mode in self.metadata["render_modes"]; self.render_mode = render_mode
     if self.layout is not None: self.reward_range = self._reward_range(self.layout.copy())
     if render_mode is not None: 
@@ -34,21 +34,24 @@ class Grid(Simulation, Rendering):
     """Calculate the reward of `action` for the current `borad`.
     :Return: reward, termination reason, agent positon, new position, new field"""
     reward, termination = STEP_COST, None; position = self.getpos(board)
-    target = self.newpos(position, action); field = CHARS[board[target]] 
-    if field == TARGET: termination, reward = 'GOAL', TARGET_REWARD + STEP_COST
+    target = self.newpos(position, action); field = CHARS[board[target]]
+    if field == TARGET and not self.explore: termination, reward = 'GOAL', TARGET_REWARD + STEP_COST
     if field == HOLE: termination, reward = 'FAIL', HOLE_COST + STEP_COST
     return reward, termination, position, target, field
   
   def _reward_range(self, board:np.ndarray):
     """Given a `board` layout, calculates the min and max returns"""
-    maximum_reward = -100 if self.explore else TARGET_REWARD + self._validate(board) * STEP_COST
+    optimal_path = self._validate(board)
+    maximum_reward = -100 if self.explore else TARGET_REWARD + optimal_path * STEP_COST
+    self.reward_threshold = TARGET_REWARD + 1.2 * optimal_path * STEP_COST 
     self.reward_range = (self.max_episode_steps*STEP_COST, maximum_reward); return self.reward_range
 
   def _step(self, action:int) -> tuple[np.ndarray, float, bool, bool, dict]:
     """Helper function to step the environment, executing `action`, returning its consequences"""
     reward, termination, position, target, field = self._reward(self.board, action)
-    info = {'termination_reason': termination} if termination is not None else {} 
-    if field is not WALL: self.board[tuple(position)] = CELLS[FIELD]  # Move Agent 
+    info = {'termination_reason': termination} if termination is not None else {}
+    revert = CELLS[TARGET] if all(np.equal(position, self.tpos)) else CELLS[FIELD] 
+    if field is not WALL: self.board[tuple(position)] = revert      # Move Agent 
     if field in [FIELD, TARGET]: self.board[target] = CELLS[AGENT]  # Update Board 
     if self.render_mode is not None: self.renderer.update_world(self, action, target, field)
     return self.board.flatten(), reward, termination is not None, False, info
