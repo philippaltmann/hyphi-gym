@@ -21,7 +21,9 @@
   <visual><headlight ambient=".4 .4 .4" diffuse=".8 .8 .8" specular="0.1 0.1 0.1"/></visual>
   <worldbody>
     <body name="particle" pos="0 0 0" >
-      <body name="Agent" pos="0 0 0" quat="0 0 0.7071 0.7071"></body>
+      <body name="Agent" pos="0 0 0" quat="0 0 0.7071 0.7071">
+        <geom type="box" pos="0 0 0" size=".1 .1 .1" />
+      </body>
       <joint name="ball_x" type="slide" pos="0 0 0" axis="1 0 0"/>
       <joint name="ball_y" type="slide" pos="0 0 0" axis="0 1 0"/>
     </body>
