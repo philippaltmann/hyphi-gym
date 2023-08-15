@@ -40,7 +40,7 @@ class Simulation(Board): # Inherits from Board just for reference to vars, init 
     """Init mujoco simulation using `frame_skip` and optionaly `grid` mode. For state stochasticity
       use `position_noise`. To generate a model, supply core via `self.base_xml`. If `self.layout` 
     is not set upon init, use `setup_world(layout)` and `load_world()` once available. """
-    self.frame_skip = frame_skip; self.grid = grid; self.position_noise = position_noise;
+    self.frame_skip = frame_skip; self.grid = grid; self.position_noise = position_noise; self.holes = []
     self.width, self.height = self.metadata['render_resolution']; self._target_active = False
     if self.layout is not None: self.setup_world(self.layout)
     self.load_world() 
@@ -49,13 +49,16 @@ class Simulation(Board): # Inherits from Board just for reference to vars, init 
     """Helper function to generate a simulation from a board-based `layout`"""
     tree = ET.parse(self.base_xml); worldbody = tree.find(".//worldbody"); assert worldbody is not None
     _str = lambda list: ' '.join(map(str,list))
-    block = lambda p,cell: ET.SubElement(
-      worldbody, "geom", type="box", material=cell, 
-      pos=_str([*self._pos(p), (1 if cell=='#' else -1)*HEIGHT/2]), 
-      size=_str([SIZE/2,SIZE/2,HEIGHT/(1 if cell=='#' else 2)]))
-    lookup = { CELLS[WALL]: WALL, CELLS[FIELD]: FIELD, 
+    lookup = { CELLS[WALL]: WALL, CELLS[FIELD]: FIELD,
                CELLS[AGENT]: FIELD, CELLS[TARGET]: FIELD}
-    [block((i,j), lookup[cell]) for i,row in enumerate(layout) for j, cell in enumerate(row) if cell in lookup.keys()]
+    holes = []
+    block = lambda p,cell: ET.SubElement(
+        worldbody, "geom", type="box", material=lookup[cell], 
+        pos=_str([*self._pos(p), (1 if cell==CELLS[WALL] else -1)*HEIGHT/2]), 
+        size=_str([SIZE/2,SIZE/2,HEIGHT/(1 if cell==CELLS[WALL] else 2)])
+      ) if cell in lookup.keys() else holes.append(self._pos(p)) #print(f"{cell}, at {self._pos(p)}")
+    [block((i,j), cell) for i,row in enumerate(layout) for j, cell in enumerate(row)]
+    self.holes = np.array(holes)
     # Set initial agent position, velocity and target position, add ground
     self.i_apos, self.i_avel = self._pos(self.getpos(layout, AGENT)), np.array([0,0])
     self.i_tpos = self._pos(self.getpos(layout, TARGET))
@@ -66,7 +69,7 @@ class Simulation(Board): # Inherits from Board just for reference to vars, init 
                     specular="0", shininess="0", texrepeat=' '.join([str(s) for s in self.size[::-1]]))
       agent = tree.find('.//worldbody/body/body'); assert agent is not None
       for part in ['Body', 'Ears', 'Eyes', 'Hat', 'Lamp', 'Mouth', 'White']:
-        ET.SubElement(asset, "mesh", file=f'{os.getcwd()}/hyphi_gym/assets/Agent/{part}.obj')
+        ET.SubElement(asset, "mesh", file=f'{os.path.dirname(self.base_xml)}/Agent/{part}.obj')
         ET.SubElement(agent, "geom", mesh=part, material=part, type="mesh")
 
     with tempfile.TemporaryDirectory() as tmp_dir: self.model_path = os.path.join(os.path.dirname(tmp_dir), "world.xml")
@@ -124,9 +127,31 @@ class Simulation(Board): # Inherits from Board just for reference to vars, init 
 
   def close(self): self.mujoco_renderer.close()
 
-  def state_vector(self) -> np.ndarray:
+  def state_vector(self) -> np.ndarray: #-> np.ndarray:
     """Return the position and velocity joint states of the model"""
     assert self.data is not None, "No model loaded"
+    # state = np.concatenate(agent_pos[:], agent_vel[:], holes_pos[:]).ravel()
+    # dict_obs = { 
+    #   "velocity": self.data.qvel[:2], 
+    #   "agent":    self.data.qpos[:2],
+    #   "target":   self.target[:2] - self.data.qpos[:2]
+    # }
+    velocity = self.data.qvel[:2]
+    agent = self.data.qpos[:2]
+    target = self.target[:2] - self.data.qpos[:2]
+    state = np.concatenate((velocity, agent, target))
+
+    if len(self.holes):
+      hole_dist = self.holes - self.data.qpos[:2]; 
+      next_hole = hole_dist[np.linalg.norm(hole_dist, axis=1).argmin()]
+      hole_norm = np.clip(next_hole/np.linalg.norm(next_hole, ord=1) * 2, -1, 1) * SIZE / 2
+      # dict_obs['holes'] = next_hole - hole_norm #Normalized to compensate delta to the center of the hole
+      state = np.concatenate(state, next_hole - hole_norm) #Normalized to compensate delta to the center of the hole
+    
+    # return dict_obs
+    return state
+
+    # assert False
     return np.concatenate([self.data.qpos[:2], self.data.qvel[:2]]).ravel()
 
   def set_state(self, qpos:Optional[np.ndarray]=None, qvel:Optional[np.ndarray]=None):
@@ -153,7 +178,7 @@ class Simulation(Board): # Inherits from Board just for reference to vars, init 
 
   def _pos(self, idx: Union[np.ndarray, tuple]) -> np.ndarray:
     """Converts a cell index `(i,j)` to x and y position in the MuJoCo simulation"""
-    a = np.array; swap = a((-1,1)); return (((a(idx) + 0.5) * swap)[::-1] + a(self.size[::-1])/2 * swap )
+    a = np.array; swap = a((-1,1)); return (((a(idx) + 0.5) * swap)[::-1] + a(self.size[::-1])/2 * swap ) # type: ignore
   
   def _noisy(self, pos: np.ndarray) -> np.ndarray:
     """Pass an x,y coordinate and it will return the same coordinate with uniform noise added"""
