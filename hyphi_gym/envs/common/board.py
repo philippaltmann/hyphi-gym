@@ -83,7 +83,6 @@ class Board(Base):
   def _board(self, layout:Optional[np.ndarray], remove=[], update=False)->np.ndarray:
     """Get the current board according to an optional `layout` and the global random configuration, 
     optionally update globally"""
-    if self.explore: remove = [*remove, TARGET]
     board = layout.copy() if layout is not None else self._generate()
     [self.randomize(key[0], board) for key in RAND_KEYS if key in self.random]
     for rm in remove: board[tuple(self.getpos(board, rm))] = CELLS[FIELD]
@@ -91,4 +90,5 @@ class Board(Base):
       if self._validate(board.copy(), error=False) > self.max_episode_steps: 
         return self._board(layout,remove,update)
       self.board = board
+      self.tpos = self.getpos(board, TARGET)
     return board 
