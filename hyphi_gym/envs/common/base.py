@@ -14,15 +14,10 @@ class Base(gym.Env):
 
   def __init__(self, max_episode_steps=100, sparse=False, explore=False, seed:Optional[int]=None):
     self.max_episode_steps, self.reward_range = max_episode_steps, (-max_episode_steps, -max_episode_steps)
-    self.dynamic_spec, self._spec = ['reward_threshold', 'nondeterministic', 'max_episode_steps'], {}
+    self.dynamic_spec, self._spec = ['nondeterministic', 'max_episode_steps'], {}
     self.sparse, self.explore, self.nondeterministic = sparse, explore, len(self.random) > 0; self.seed(seed)
     if len(self.random): assert self.np_random is not None, "Please provide a seed to use nondeterministic features"
 
-  @property
-  def reward_threshold(self)->float: 
-    """Gets the current layout's reward threshold"""
-    return round(.95 * self.reward_range[1])
-  
   @property
   def name(self)->str: 
     """Generates the dynamic environent name"""
