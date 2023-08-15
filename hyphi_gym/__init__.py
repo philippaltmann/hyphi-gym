@@ -30,3 +30,8 @@ def named(name):
   random = [*random, *re.findall('[A-Z][^A-Z]*', name)]
   return {**level, **args, 'random': random, }
 
+#Sparse, Explore, Agent, Target, Agents, Targets
+ENVS = [
+  'HoleyGrid', 'HoleyGridShift',  'HoleyGrids', 'HoleyPlane', 'HoleyPlaneShift',  'HoleyPlanes', 
+  [[[f'{base}Maze{s}', f'{base}Mazes{s}'] for s in [7,9,11,13,15]] for base in ['Grid', 'Point']],
+]
