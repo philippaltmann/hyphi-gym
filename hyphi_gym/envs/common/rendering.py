@@ -35,17 +35,22 @@ class Rendering(Board):
     for proto in [WALL,FIELD]: bpy.data.objects[proto].hide_render = True                 # type: ignore
     self.scene.render.resolution_x, self.scene.render.resolution_y = self.metadata['render_resolution']
     camera = bpy.data.objects['Camera']                                                   # type: ignore
-    cam = { 7: Vector((0.58,0.59,1.18)),  8: Vector((0.67,0.70,1.35)),  9: Vector((0.82,0.83,1.52)),
-           11: Vector((1.05,1.07,1.82)), 13: Vector((1.28,1.30,2.15)), 15: Vector((1.52,1.54,2.50))}
+    cam = { 
+      7: Vector((0.58,0.59,1.22)),  
+      8: Vector((0.67,0.70,1.37)),  
+      9: Vector((0.82,0.83,1.52)),
+      11: Vector((1.05,1.07,1.85)), 
+      13: Vector((1.28,1.30,2.15)), 
+      15: Vector((1.52,1.54,2.48))}
     camera.location = cam[int(sum(self.size)/len(self.size))]
 
   def reset_world(self):
     """Reset simulation and reposition agent and target to respective `i_pos`"""
     if len(self.random) > 0: self.setup3D(self.board) 
     bpy.data.objects['A'].location = self._bpos(*[ *self.getpos(), 'A'])                    # type: ignore
-    bpy.data.objects['A'].rotation_euler = (0,0,0)      # Rotate towards action            # type: ignore
-    bpy.data.objects['T'].hide_render = self.explore    # Unhide target                    # type: ignore
-    bpy.data.objects['A'].hide_render =  False          # Unhide agent                     # type: ignore
+    bpy.data.objects['A'].rotation_euler = (0,0,0)       # Rotate towards action            # type: ignore
+    bpy.data.objects['T'].hide_render = False            # Unhide target                    # type: ignore
+    bpy.data.objects['A'].hide_render = False            # Unhide agent                     # type: ignore
   
   def update_world(self, action, mPos, Cell):
     bpy.data.objects['A'].rotation_euler = (0,0,[0.5,0,1.5,1][action] * math.pi)           # type: ignore
