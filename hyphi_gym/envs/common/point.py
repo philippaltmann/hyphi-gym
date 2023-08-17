@@ -12,10 +12,9 @@ class Point(Simulation):
     self.render_mode = render_mode; super().__init__(position_noise=0.2); assert self.model is not None; 
     self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(4,), dtype=np.float64)
     self.observation_space = spaces.Box(-np.inf, np.inf, shape=(2 * (4 if len(self.holes) else 3),), dtype=np.float64) 
-
     bounds = self.model.actuator_ctrlrange.copy().astype(np.float32) # Set Action Space 
     self.action_space = spaces.Box(low=bounds.T[0], high=bounds.T[1], dtype=np.float32)
-    self.action_space.seed(self._seed)
+    self.action_space.seed(self._seed); self.reward_threshold = None
     
   def _step(self, action:np.ndarray) -> tuple[dict, float, bool, bool, dict]: 
     """Helper function to execute `action` returning its consequences.
