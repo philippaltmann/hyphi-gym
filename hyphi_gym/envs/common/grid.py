@@ -6,6 +6,7 @@ from hyphi_gym.envs.common.rendering import Rendering
 from hyphi_gym.envs.common.simulation import Simulation
 
 class Grid(Simulation, Rendering): 
+  step_scale = 1  # Used for calculating max_episode_steps according to grid size
   base_xml = path.join(path.dirname(path.realpath(__file__)), "../../assets/grid.xml")
 
   metadata = {"render_modes": ["2D", "3D", "blender"], "render_fps": 5, "render_resolution": (720,720)} 
@@ -13,7 +14,6 @@ class Grid(Simulation, Rendering):
     self.observation_space = gym.spaces.MultiDiscrete(np.full(np.prod(self.size), len(CHARS)))
     self.action_space = gym.spaces.Discrete(4); self.action_space.seed(self._seed); self.reward_threshold = 'VARY'
     assert render_mode is None or render_mode in self.metadata["render_modes"]; self.render_mode = render_mode
-    if self.layout is not None: self.reward_range = self._reward_range(self.layout.copy())
     if render_mode is not None: 
       self.renderer = Rendering if render_mode == 'blender' else Simulation
       self.renderer.__init__(self, grid=True, **simargs)
@@ -25,46 +25,21 @@ class Grid(Simulation, Rendering):
 
   """Gym API functions"""
   def reset(self, **kwargs)-> tuple[np.ndarray,dict]:
-    super().reset(**kwargs); self._board(self.layout, update=True)
-    if self.layout is None: self.reward_range = self._reward_range(self.board.copy())
+    observation, info = super().reset(**kwargs)
     if self.render_mode is not None: self.renderer.reset_world(self)
-    return self.board.flatten(), {}
-    
-  def _reward(self, board:np.ndarray, action:int)->tuple[float, Optional[str], np.ndarray, tuple[int,int], str]:
-    """Calculate the reward of `action` for the current `borad`.
-    :Return: reward, termination reason, agent positon, new position, new field"""
-    reward, termination = STEP_COST, None; position = self.getpos(board)
-    target = self.newpos(position, action); field = CHARS[board[target]]
-    if field == TARGET and not self.explore: termination, reward = 'GOAL', TARGET_REWARD + STEP_COST
-    if field == HOLE: termination, reward = 'FAIL', HOLE_COST + STEP_COST
-    return reward, termination, position, target, field
-  
-  def _reward_range(self, board:np.ndarray):
-    """Given a `board` layout, calculates the min and max returns"""
-    optimal_path = self._validate(board)
-    maximum_reward = -100 if self.explore else TARGET_REWARD + optimal_path * STEP_COST
-    self.reward_threshold = TARGET_REWARD + 1.2 * optimal_path * STEP_COST 
-    self.reward_range = (self.max_episode_steps*STEP_COST, maximum_reward); return self.reward_range
+    return observation, info
 
-  def _step(self, action:int) -> tuple[np.ndarray, float, bool, bool, dict]:
+  def _distance(self): return np.linalg.norm(self.getpos(self.board) - self.getpos(self.board, TARGET))
+
+  def execute(self, action: int) -> tuple[np.ndarray, dict]:
     """Helper function to step the environment, executing `action`, returning its consequences"""
-    reward, termination, position, target, field = self._reward(self.board, action)
-    info = {'termination_reason': termination} if termination is not None else {}
+    position = self.getpos(self.board); target = self.newpos(position, action);     
+    field, info = CHARS[self.board[target]], {'distance': self._distance()}
+    if field == TARGET: info = {**info, 'termination_reason':'GOAL'}; 
+    if field == HOLE: {**info, 'termination_reason':'FAIL'}
     revert = CELLS[TARGET] if all(np.equal(position, self.tpos)) else CELLS[FIELD] 
     if field is not WALL: self.board[tuple(position)] = revert      # Move Agent 
     if field in [FIELD, TARGET]: self.board[target] = CELLS[AGENT]  # Update Board 
     if self.render_mode is not None: self.renderer.update_world(self, action, target, field)
-    return self.board.flatten(), reward, termination is not None, False, info
+    return self.board.flatten(), info
     
-  # Helperfunctions for plotting heatmaps
-  def iterate(self, function = lambda e,s,a,r: r, fallback=None):
-    """Iterate all possible actions in all env states, apply `funcion(env, state, action, reward)`
-    function: `f(env, state, action, reward()) => value` to be applied to all actions in all states default: return envreward
-    :returns: ENVxACTIONS shaped function results"""
-    empty_board = self._board(self.layout, [AGENT]); fallback = [fallback] * len(ACTIONS)
-    def prepare(x,y): state = empty_board.copy(); state[y][x] = CELLS[AGENT]; return state
-
-    # Create empty board for iteration & function for reverting Observation to board 
-    process = lambda state: [function(self, state, action, self._reward(state, action)[0]) for action in ACTIONS]
-    return [ [ process(prepare(x,y)) if CHARS[cell] == FIELD else fallback for x, cell in enumerate(row) ] 
-      for y, row in enumerate(empty_board) ]
