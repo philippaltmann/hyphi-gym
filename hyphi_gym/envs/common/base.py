@@ -6,16 +6,16 @@ class Base(gym.Env):
   """ Base Env Implementing 
   • Trucated Episodes (via `max_episode_steps`)
   • Sparse Rewards (defaults to False)
+  • Exact Rewards (defaults to False)
   • Reward Threshold for Early Stopping 
   • Exploration Mode, where both the target and the reward are removed. 
   • Seeding nondeterministic environemtn configureation
   • Generating a dynamic spec obejct and env name based on the configuration"""
   random:list; _name: str
 
-  def __init__(self, max_episode_steps=100, sparse=False, explore=False, seed:Optional[int]=None):
-    self.max_episode_steps, self.reward_range = max_episode_steps, (-max_episode_steps, -max_episode_steps)
-    self.dynamic_spec, self._spec = ['nondeterministic', 'max_episode_steps'], {}
-    self.sparse, self.explore, self.nondeterministic = sparse, explore, len(self.random) > 0; self.seed(seed)
+  def __init__(self, max_episode_steps=100, sparse=False, exact=False, explore=False, seed:Optional[int]=None):
+    self.max_episode_steps, self.dynamic_spec, self._spec = max_episode_steps, ['nondeterministic', 'max_episode_steps'], {}
+    self.sparse, self.exact, self.explore, self.nondeterministic = sparse, exact, explore, len(self.random) > 0; self.seed(seed)
     if len(self.random): assert self.np_random is not None, "Please provide a seed to use nondeterministic features"
 
   @property
