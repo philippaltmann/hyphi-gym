@@ -15,21 +15,18 @@ class Point(Simulation):
     bounds = self.model.actuator_ctrlrange.copy().astype(np.float32) # Set Action Space 
     self.action_space = spaces.Box(low=bounds.T[0], high=bounds.T[1], dtype=np.float32)
     self.action_space.seed(self._seed); self.reward_threshold = None
-    
-  def _step(self, action:np.ndarray) -> tuple[dict, float, bool, bool, dict]: 
-    """Helper function to execute `action` returning its consequences.
-    Point velocity is clipped (can grow unbounded / ball is force actuated)"""
+
+  def execute(self, action:np.ndarray) -> tuple[dict, dict]:
+    """Executes the action, returns the new state, info, and distance between the agent and target"""
     assert self.data is not None; action = np.clip(action, -1.0, 1.0) 
     self.set_state(None, np.clip(self.data.qvel[:2], -5.0, 5.0)); self.do_simulation(action)
-    obs, info = self.state_vector(), {}; distance = np.linalg.norm(obs[4:6])
-    reward = np.exp(-distance)/np.exp(-2*AGENT_SIZE)-1 # Negative fraction of the exp distance to the target 
-    if bool(distance <= 2*AGENT_SIZE): info = {**info, 'termination_reason':'GOAL'}; self._toggle_target(False); reward += self.max_episode_steps;
-    if self.data.qpos[2] < -AGENT_SIZE: info = {**info, 'termination_reason':'FAIL'}; reward -= 1; reward -= self.max_episode_steps;
-    return obs, reward, 'termination_reason' in info.keys(), False, info
+    obs, info = self.state_vector(), {}; distance = np.linalg.norm(obs[4:6]); info['distance'] = distance
+    if bool(distance <= 2*AGENT_SIZE): info = {**info, 'termination_reason':'GOAL'}; self._toggle_target(False)
+    if self.data.qpos[2] < -AGENT_SIZE: info = {**info, 'termination_reason':'FAIL'}
+    return obs, info
   
   def reset(self, **kwargs):
     """Reset the environment simulation and randomize if needed"""
     assert self.np_random is not None, "Seeding is required"
-    self.board = self._board(self.layout)
     super().reset(**kwargs); self.reset_world()
     return self.state_vector(), {}
