@@ -5,6 +5,7 @@ from hyphi_gym.envs.common.simulation import Simulation
 AGENT_SIZE = 0.3
 
 class Point(Simulation):
+  step_scale = 10  # Used for calculating max_episode_steps according to grid size
   base_xml = path.join(path.dirname(path.realpath(__file__)), "../../assets/point.xml")
   metadata = { "render_modes": [ "2D", "3D" ], "render_fps": 1000, "render_resolution": (720,720) }
 
