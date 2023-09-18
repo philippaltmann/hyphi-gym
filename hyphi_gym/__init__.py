@@ -25,8 +25,8 @@ def named(name):
     id = 'HoleyGrid' if 'Grid' in name else 'HoleyPlane'
     level = {'id': id, 'level': 'Shift' if 'Shift' in name else 'Train'}
     name = reduce(lambda n,r: n.replace(r,''), ['Holey','Shift','Planes','Plane','Grids','Grid'], name)
-  args = {'sparse': 'Sparse' in name, 'explore': 'Explore' in name}
-  name = name.replace('Sparse','').replace('Explore','')
+  args = {'sparse': 'Sparse' in name, 'detailed': 'Detailed' in name, 'explore': 'Explore' in name}
+  name = name.replace('Sparse','').replace('Explore','').replace('Detailed','')
   random = [*random, *re.findall('[A-Z][^A-Z]*', name)]
   return {**level, **args, 'random': random, }
 
