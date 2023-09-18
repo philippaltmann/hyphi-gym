@@ -1,5 +1,5 @@
 import numpy as np; from typing import Optional, Union
-from hyphi_gym.envs.common import Base
+from hyphi_gym.envs.common import Base; import gymnasium as gym
 
 # State Types
 WALL, FIELD, AGENT, TARGET, HOLE = '#', ' ', 'A', 'T', 'H' 
@@ -7,10 +7,6 @@ CELLS = {WALL: 0, FIELD: 1, AGENT: 2, TARGET: 3, HOLE: 4}
 
 # Actions
 UP, RIGHT, DOWN, LEFT = 0, 1, 2, 3; ACTIONS = [UP, RIGHT, DOWN, LEFT] 
-
-# Rewards 
-TARGET_REWARD, STEP_COST, HOLE_COST = 50, -1, -50
-# TODO: add continuous rewards and params
 
 # Stochasticity
 RAND_KEY = ['Agent', 'Target']; RAND_KEYS = ['Agents', 'Targets']; 
@@ -27,7 +23,9 @@ class Board(Base):
   def __init__(self, size:tuple[int,int], layout:Optional[list[str]], random=[], RADD=[], **kwargs):
     self.random = random; self.random.sort(); Base.__init__(self, **kwargs); self.size = size
     assert all([r in [*RADD, *RAND] for r in random]), f'Please specify all random elements in {[*RADD, *RAND]}'
-    if layout is not None: self.layout = self._grid(layout); [self.randomize(r[0], self.layout) for r in RAND_KEY if r in random]
+    if layout is not None: 
+      self.layout = self._grid(layout); self.reward_range = self._reward_range(self.layout.copy())
+      [self.randomize(r[0], self.layout) for r in RAND_KEY if r in random]
 
   def ascii(self, grid:Optional[np.ndarray] = None) -> list[str]:
     """Transform 2D-INT Array to list of strings"""
@@ -92,3 +90,9 @@ class Board(Base):
       self.board = board
       self.tpos = self.getpos(board, TARGET)
     return board 
+
+  def reset(self, **kwargs)->tuple[gym.spaces.Space, dict]:
+    """Gymnasium compliant function to reset the environment""" 
+    super().reset(**kwargs); self._board(self.layout, update=True)
+    if self.layout is None: self.reward_range = self._reward_range(self.board.copy())
+    return self.board.flatten(), {}
