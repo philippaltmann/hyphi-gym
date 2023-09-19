@@ -1,5 +1,5 @@
 from hyphi_gym.envs.common.board import *
-import numpy as np
+import numpy as np; import math
 
 LEVELS = {
   'Maze7': ['#######', # Maze 7x7 
@@ -68,7 +68,8 @@ class Maze(Board):
   def __init__(self, size, random=[], **kwargs): 
     assert size % 2 == 1 and 15 >= size >= 3; self.size = size; self._name = f'Maze{size}' 
     layout = None if 'Layouts' in random else LEVELS[f"Maze{size}"] 
-    Board.__init__(self, size=(size,size), layout=layout, random=random, RADD=['Layouts'], **kwargs)
+    max_path = (self.size-1)**2/2-2; max_steps = math.ceil(max_path * self.step_scale * 1.2 / 100) * 100
+    Board.__init__(self, size=(size,size), layout=layout, random=random, RADD=['Layouts'], max_episode_steps=max_steps, **kwargs)
 
   def _generate(self):
     """Generate random mazes of `self.size` using `Kruskal's algorithm. 
