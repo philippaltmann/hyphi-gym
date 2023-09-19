@@ -6,7 +6,7 @@ simulation = ["mujoco==2.3.3"]
 plotting = ["matplotlib>=3.5"]
 
 setup(
-  name="hyphi_gym", version="0.2",
+  name="hyphi_gym", version="1.0",
   description="Gymnasium benchmark suite for evaluating robustness and multi-task performance of reinforcement learning algorithms in various discrete and continuous environments.",
   url="https://github.com/philippaltmann/hyphi-gym", author_email="philipp@hyphi.co", license="MIT",
   keywords="reinforcement-learning robustness benchmark gymnasium gridworld maze mujoco openai gym",
@@ -14,7 +14,7 @@ setup(
   packages=[package for package in find_packages() if package.startswith("hyphi_gym")],
   package_data={"hyphi_gym": ["assets/*", "assets/Agent/*"]},
   install_requires=[
-    "gymnasium>=0.28.1",# Bump to 1.0 once available 
+    "gymnasium>=0.29",# Bump to 1.0 once available 
     'numpy>=1.20',      # Utils
     "Pillow>=9.5",      # Save images
     "moviepy>=1.0",     # Save videos
