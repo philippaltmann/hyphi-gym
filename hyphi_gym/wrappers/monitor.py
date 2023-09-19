@@ -43,7 +43,7 @@ class Monitor(gym.Wrapper[ObsType, ActType, ObsType, ActType]):
     if terminated or truncated:
       self.needs_reset = True; ep_rew = sum(self.rewards); ep_len = len(self.rewards)
       ep_info = {"r": round(ep_rew, 6), "l": ep_len, "t": round(time.time() - self.t_start, 6), 'history': self._history()}
-      if self.env.layout is None: ep_info['reward_threshold'] = self.env.reward_threshold
+      if self.env.unwrapped.layout is None: ep_info['reward_threshold'] = self.env.reward_threshold
       self._episode_returns.append(ep_rew); 
       self._termination_reasons.append(info.pop('termination_reason'))
       self._episode_lengths.append(ep_len); self._episode_times.append(time.time() - self.t_start)

@@ -31,7 +31,7 @@ for name in args.envs:
       gym.make(**named(name), render_mode=render, seed=42)
     , record_video=True)) #len(args.demo)>0)
   layouts = []
-  for i in range(args.runs if len(env.random) else 1): 
+  for i in range(args.runs if len(env.unwrapped.random) else 1): 
     env.reset(); render = env.render(); 
     if isinstance(render, np.ndarray): render = Image.fromarray(render)
     if not args.square: w = 720; h = w/3*2; c = (w-h)/2; render = render.crop((0,c,w,h+c))
@@ -51,6 +51,6 @@ for name in args.envs:
     )
   # if len(layouts) > 1: image_grid(layouts, 10, 10).save(f"test/render/{name}-grid.png")
 
-  if len(args.demo): env.save_video(f'test/demo/{name}.mp4')
+  if len(args.demo): env.get_wrapper_attr('save_video')(f'test/demo/{name}.mp4')
   print("done")
 
