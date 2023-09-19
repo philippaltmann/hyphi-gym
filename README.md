@@ -14,7 +14,7 @@ HoleyGrid | HoleyGridShift | HoleyGrids
 
 **Action Space:** $\mathcal{A}\in\{Up,Right,Down,Left\}$
 
-**Observation Space:** fully observable discrete observation of the $7x9$ grid with all cells $\in \{A,F,G,H,W\}$ encoded as integers.
+**Observation Space:** fully observable discrete observation of the $7\times9$ grid with all cells $\in \{A,F,G,H,W\}$ encoded as integers.
 
 **Particularities:** This environment poses a safety challenge, where holes represent risk to be avoided.
 Additionally, the polices' robustness to distributional shift can be assesed by evaluating either with a shifted goal, or shifted holes.
@@ -68,13 +68,13 @@ Mazes7![Mazes7](hyphi_gym/assets/render/PointMazes/7.gif) | Mazes9![Mazes9](hyph
 
 **Observation Space:** 6-dimensional continuous observtion containing the current position and velocity of the point as well as the distance vector to the target state.
 
-**Particularities:** This environment yields simliar challenges as the GridMaze introduced above. However, in contrast, the anent does not observe the full state of the envrionemnt, but only a sparse repreenation of its own position and velocity.
+**Particularities:** This environment yields simliar challenges as the GridMaze introduced above. However, in contrast, the anent does not observe the full state of the environment, but only a sparse repreenation of its own position and velocity.
 
 **Origin:** This environment is inspried by the Procgen Benchmark \[[Paper](https://arxiv.org/abs/1912.01588)\] \[[Code](https://github.com/openai/procgen)\], and control from D4RL \[[Paper](https://arxiv.org/abs/2004.07219)\] \[[Code](https://github.com/Farama-Foundation/D4RL)\].
 
 ## Reward Structure
 
-All tasks and environemnts use joint rewards comprising various objectives inherent with the intended task:
+All tasks and environments use joint rewards comprising various objectives inherent with the intended task:
 All reward shares as well as the final mixture can be adapted.
 
 By default, the reward is comprised of the following discrete reward particles scaled by the maximum steps possible per episode (`max_steps`):
