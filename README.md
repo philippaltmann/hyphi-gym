@@ -1,4 +1,4 @@
-## <img src="hyphi_gym/assets/hyphi.png" alt= “” width="24px" height="value"> hyphi gym
+## <img src="hyphi_gym/assets/hyphi.png" width="16px"> hyphi gym
 
 # Robustness Gymnasium Benchmark Suite
 
@@ -55,7 +55,6 @@ Mazes7![Mazes7](hyphi_gym/assets/render/Mazes/7.gif) | Mazes9![Mazes9](hyphi_gym
 
 **Origin:** This environment is inspried by the Procgen Benchmark \[[Paper](https://arxiv.org/abs/1912.01588)\] \[[Code](https://github.com/openai/procgen)\]
 
-
 ## PointMaze
 
 Maze7![Maze7](hyphi_gym/assets/render/PointMaze/7.png) | Maze9![Maze9](hyphi_gym/assets/render/PointMaze/9.png) | Maze11![Maze11](hyphi_gym/assets/render/PointMaze/11.png) | Maze13![Maze13](hyphi_gym/assets/render/PointMaze/13.png) | Maze15![Maze15](hyphi_gym/assets/render/PointMaze/15.png)
@@ -110,7 +109,7 @@ r_t=
 \end{cases}
 $$
 
-This resembles a more realistic feedback situation and yields an even harder exploration challenge. 
+This resembles a more realistic feedback situation and yields an even harder exploration challenge.
 
 ## Detailed
 
