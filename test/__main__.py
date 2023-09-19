@@ -15,23 +15,15 @@ parser.add_argument('--grid', action='store_true', help='Save grid of layouts in
 args = parser.parse_args()
 
 def image_grid(imgs, rows, cols):
-  print(len(imgs))
-  print(rows*cols)
-  assert len(imgs) == rows*cols
-
-  w, h = imgs[0].size
-  print(w,h)
+  assert len(imgs) == rows*cols; w, h = imgs[0].size
   grid = Image.new('RGB', size=(cols*w, rows*h))
-  grid_w, grid_h = grid.size
-  
   for i, img in enumerate(imgs):
-      grid.paste(img, box=(i%cols*w, i//cols*h))
+    grid.paste(img, box=(i%cols*w, i//cols*h))
   return grid
 
 for name in args.envs:
   if "Point" in name or "Plane" in name:
-    # render,lookup,n = '2D', [[0,1],[1,0],[0,-1],[-1,0]], 20
-    render,lookup,n = '2D', [[0,1],[1,0],[0,-1],[-1,0]], 18
+    render,lookup,n = '2D', [[0,1],[1,0],[0,-1],[-1,0]], 20
     demo = [lookup[a] for a in args.demo for _ in range(n)]
   else: demo, render = args.demo, 'blender'
 
@@ -42,15 +34,12 @@ for name in args.envs:
   for i in range(args.runs if len(env.random) else 1): 
     env.reset(); render = env.render(); 
     if isinstance(render, np.ndarray): render = Image.fromarray(render)
-    if not args.square: w = 720; h = w/3*2; c = (w-h)/26; render = render.crop((0,c,w,h+c))
+    if not args.square: w = 720; h = w/3*2; c = (w-h)/2; render = render.crop((0,c,w,h+c))
     layouts.append(render) 
     R = []
     for i,a in enumerate(demo): 
-      s,r,tm,tr,info = env.step(a)
-      R.append(r)
-      print(s)
-      if tm or tr: break;
-    print(R)
+      s,r,tm,tr,info = env.step(a); R.append(r)
+      if tm or tr: break
     print(sum(R))
   if args.grid:
     s = int(math.sqrt(len(layouts))); image_grid(layouts,s,s).save(f"test/render/{name}.png")
