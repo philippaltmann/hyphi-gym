@@ -146,7 +146,7 @@ class Simulation(Board): # Inherits from Board just for reference to vars, init 
       next_hole = hole_dist[np.linalg.norm(hole_dist, axis=1).argmin()]
       hole_norm = np.clip(next_hole/np.linalg.norm(next_hole, ord=1) * 2, -1, 1) * SIZE / 2
       # dict_obs['holes'] = next_hole - hole_norm #Normalized to compensate delta to the center of the hole
-      state = np.concatenate(state, next_hole - hole_norm) #Normalized to compensate delta to the center of the hole
+      state = np.concatenate((state, next_hole - hole_norm)) #Normalized to compensate delta to the center of the hole
     
     # return dict_obs
     return state

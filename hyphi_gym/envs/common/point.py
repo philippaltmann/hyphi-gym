@@ -24,6 +24,7 @@ class Point(Simulation):
     obs, info = self.state_vector(), {}; distance = np.linalg.norm(obs[4:6]); info['distance'] = distance
     if bool(distance <= 2*AGENT_SIZE): info = {**info, 'termination_reason':'GOAL'}; self._toggle_target(False)
     if self.data.qpos[2] < -AGENT_SIZE: info = {**info, 'termination_reason':'FAIL'}
+    if obs.shape[0] == 8 and (obs[6:8] < 0).all(): info = {**info, 'termination_reason':'FAIL'}
     return obs, info
   
   def reset(self, **kwargs):
