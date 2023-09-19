@@ -6,7 +6,6 @@ import math
 
 # Rewards 
 GOAL, STEP, FAIL = 1/2, -1, -1/2
-SOLUTION_THRESHOLD = 1.2
 
 class Base(gym.Env):
   """ Base Env Implementing 
@@ -20,8 +19,7 @@ class Base(gym.Env):
   random:list; _name: str
 
   def __init__(self, max_episode_steps=100, sparse=False, detailed=False, explore=False, seed:Optional[int]=None):
-    max_path = (self.size-1)**2/2-2; max_steps = math.ceil(max_path * self.step_scale * SOLUTION_THRESHOLD / 100) * 100
-    self.max_episode_steps, self.dynamic_spec, self._spec = max_steps, ['nondeterministic', 'max_episode_steps'], {}
+    self.max_episode_steps, self.dynamic_spec, self._spec = max_episode_steps, ['nondeterministic', 'max_episode_steps'], {}
     self.sparse, self.detailed, self.explore, self.nondeterministic = sparse, detailed, explore, len(self.random) > 0; self.seed(seed)
     if len(self.random): assert self.np_random is not None, "Please provide a seed to use nondeterministic features"
 
