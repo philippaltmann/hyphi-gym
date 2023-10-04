@@ -32,7 +32,7 @@ for name in args.envs:
     , record_video=True)) #len(args.demo)>0)
   layouts = []
   for i in range(args.runs if len(env.unwrapped.random) else 1): 
-    env.reset(); render = env.render(); 
+    env.reset(seed=i); render = env.render(); 
     if isinstance(render, np.ndarray): render = Image.fromarray(render)
     if not args.square: w = 720; h = w/3*2; c = (w-h)/2; render = render.crop((0,c,w,h+c))
     layouts.append(render) 
@@ -40,7 +40,7 @@ for name in args.envs:
     for i,a in enumerate(demo): 
       s,r,tm,tr,info = env.step(a); R.append(r)
       if tm or tr: break
-    print(sum(R))
+    # print(sum(R))
   if args.grid:
     s = int(math.sqrt(len(layouts))); image_grid(layouts,s,s).save(f"test/render/{name}.png")
   else:
