@@ -1,8 +1,6 @@
 import gymnasium as gym; from typing import Optional; import numpy as np
 from gymnasium.utils.seeding import np_random
 from gymnasium.envs.registration import EnvSpec
-import math
-# from hyphi_gym.envs.common import Point
 
 # Rewards 
 GOAL, STEP, FAIL = 1/2, -1, -1/2
@@ -50,7 +48,7 @@ class Base(gym.Env):
     if self.detailed: return (0, self.max_episode_steps)
     optimal_path = self._validate(board) * self.step_scale if board is not None else 0
     min_return = self.max_episode_steps * STEP + ('Holes' in self._name) * FAIL * self.max_episode_steps
-    max_return = self.max_episode_steps * GOAL + optimal_path * STEP
+    max_return = self.max_episode_steps * GOAL #+ optimal_path * STEP * (self.step_scale == 1)
     self.reward_threshold = self.max_episode_steps * GOAL + 1.2 * optimal_path * STEP
     return (min_return, max_return)
   
