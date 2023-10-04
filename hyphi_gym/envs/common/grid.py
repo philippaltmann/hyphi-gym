@@ -12,7 +12,7 @@ class Grid(Simulation, Rendering):
   metadata = {"render_modes": ["2D", "3D", "blender"], "render_fps": 5, "render_resolution": (720,720)} 
   def __init__(self, render_mode:Optional[str]=None, **simargs):
     self.observation_space = gym.spaces.MultiDiscrete(np.full(np.prod(self.size), len(CHARS)))
-    self.action_space = gym.spaces.Discrete(4); self.action_space.seed(self._seed); self.reward_threshold = 'VARY'
+    self.action_space = gym.spaces.Discrete(4); self.action_space.seed(self._seed)
     assert render_mode is None or render_mode in self.metadata["render_modes"]; self.render_mode = render_mode
     if render_mode is not None: 
       self.renderer = Rendering if render_mode == 'blender' else Simulation
@@ -29,7 +29,7 @@ class Grid(Simulation, Rendering):
     if self.render_mode is not None: self.renderer.reset_world(self)
     return observation, info
 
-  def _distance(self): return np.linalg.norm(self.getpos(self.board) - self.getpos(self.board, TARGET))
+  def _distance(self): return np.linalg.norm(self.getpos(self.board) - self.tpos)
 
   def execute(self, action: int) -> tuple[np.ndarray, dict]:
     """Helper function to step the environment, executing `action`, returning its consequences"""
