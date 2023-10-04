@@ -15,7 +15,7 @@ class Point(Simulation):
     self.observation_space = spaces.Box(-np.inf, np.inf, shape=(2 * (4 if len(self.holes) else 3),), dtype=np.float64) 
     bounds = self.model.actuator_ctrlrange.copy().astype(np.float32) # Set Action Space 
     self.action_space = spaces.Box(low=bounds.T[0], high=bounds.T[1], dtype=np.float32)
-    self.action_space.seed(self._seed); self.reward_threshold = None
+    self.action_space.seed(self._seed)
 
   def execute(self, action:np.ndarray) -> tuple[dict, dict]:
     """Executes the action, returns the new state, info, and distance between the agent and target"""
