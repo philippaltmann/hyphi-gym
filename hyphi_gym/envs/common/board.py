@@ -24,8 +24,10 @@ class Board(Base):
     self.random = random; self.random.sort(); Base.__init__(self, **kwargs); self.size = size
     assert all([r in [*RADD, *RAND] for r in random]), f'Please specify all random elements in {[*RADD, *RAND]}'
     if layout is not None: 
-      self.layout = self._grid(layout); self.reward_range = self._reward_range(self.layout.copy())
+      self.layout = self._grid(layout)
       [self.randomize(r[0], self.layout) for r in RAND_KEY if r in random]
+      self.reward_range = self._reward_range(self.layout.copy())
+    if len([r for r in random if r in ['Layouts', *RAND_KEYS]]): self.reward_threshold = 'VARY'
 
   def ascii(self, grid:Optional[np.ndarray] = None) -> list[str]:
     """Transform 2D-INT Array to list of strings"""
@@ -87,12 +89,14 @@ class Board(Base):
     if update:
       if self._validate(board.copy(), error=False) > self.max_episode_steps: 
         return self._board(layout,remove,update)
-      self.board = board
+      self.board, self.reward_range = board, self._reward_range(board.copy())
       self.tpos = self.getpos(board, TARGET)
     return board 
 
   def reset(self, **kwargs)->tuple[gym.spaces.Space, dict]:
     """Gymnasium compliant function to reset the environment""" 
     super().reset(**kwargs); self._board(self.layout, update=True)
-    if self.layout is None: self.reward_range = self._reward_range(self.board.copy())
+    if 'seed' in kwargs and kwargs['seed'] is not None: 
+      [self.randomize(r[0], self.layout) for r in RAND_KEY if r in self.random]
+      self.reward_range = self._reward_range(self.layout.copy())
     return self.board.flatten(), {}
