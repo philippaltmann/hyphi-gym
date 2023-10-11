@@ -17,7 +17,7 @@ class Monitor(gym.Wrapper[ObsType, ActType, ObsType, ActType]):
     self.discrete = isinstance(env.unwrapped, Grid); self.policy = 'MlpPolicy' if self.discrete else 'MultiInputPolicy'
     self.record_video = record_video; self._frame_buffer = []
     self.states: list = [np.ndarray]; self.actions:list = [np.ndarray]; self.rewards: list[float] = []
-    self._history = lambda: {key: getattr(self,key).copy() for key in ['states','actions','rewards']}
+    self._history = lambda: {key: np.array(getattr(self,key).copy()) for key in ['states','actions','rewards']}
     self._episode_returns: list[float] = []; self._termination_reasons: list[str] = []
     self._episode_lengths: list[int] = []; self._episode_times: list[float] = []; 
     self._total_steps = 0; self.needs_reset = True
@@ -41,7 +41,7 @@ class Monitor(gym.Wrapper[ObsType, ActType, ObsType, ActType]):
     self.states.append(state); self.actions.append(action); self.rewards.append(float(reward))
     if self.record_video: self._frame_buffer.append(self.render())
     if terminated or truncated:
-      self.needs_reset = True; ep_rew = sum(self.rewards); ep_len = len(self.rewards)
+      self.needs_reset = True; ep_rew = sum(self.rewards); ep_len = len(self.rewards); self.states.pop(-1);
       ep_info = {"r": round(ep_rew, 6), "l": ep_len, "t": round(time.time() - self.t_start, 6), 'history': self._history()}
       ep_info['reward_threshold'] = self.env.unwrapped.reward_threshold
       self._episode_returns.append(ep_rew); 
