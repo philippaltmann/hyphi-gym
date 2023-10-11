@@ -36,7 +36,7 @@ class Grid(Simulation, Rendering):
     position = self.getpos(self.board); target = self.newpos(position, action);     
     field, info = CHARS[self.board[target]], {'distance': self._distance()}
     if field == TARGET: info = {**info, 'termination_reason':'GOAL'}; 
-    if field == HOLE: {**info, 'termination_reason':'FAIL'}
+    if field == HOLE: info = {**info, 'termination_reason':'FAIL'}
     revert = CELLS[TARGET] if all(np.equal(position, self.tpos)) else CELLS[FIELD] 
     if field is not WALL: self.board[tuple(position)] = revert      # Move Agent 
     if field in [FIELD, TARGET]: self.board[target] = CELLS[AGENT]  # Update Board 
