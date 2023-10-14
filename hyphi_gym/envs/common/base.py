@@ -17,7 +17,11 @@ class Base(gym.Env):
   random:list; _name: str
 
   def __init__(self, max_episode_steps=100, sparse=False, detailed=False, explore=False, seed:Optional[int]=None):
-    self.max_episode_steps, self.dynamic_spec, self._spec = max_episode_steps, ['nondeterministic', 'max_episode_steps'], {}
+    self.max_episode_steps, self._spec = max_episode_steps, {}
+    self.dynamic_spec = ['nondeterministic', 'max_episode_steps', 'reward_threshold']
+    min_return = self.max_episode_steps * STEP + ('Holes' in self._name) * FAIL * self.max_episode_steps
+    max_return = self.max_episode_steps * GOAL #+ optimal_path * STEP * (self.step_scale == 1)
+    self.reward_range, self.reward_threshold = (min_return, max_return), 'VARY'
     self.sparse, self.detailed, self.explore, self.nondeterministic = sparse, detailed, explore, len(self.random) > 0; self.seed(seed)
     if len(self.random): assert self.np_random is not None, "Please provide a seed to use nondeterministic features"
 
@@ -43,14 +47,11 @@ class Base(gym.Env):
     self.reward_buffer, self.termination_resaons = [], []; 
     return super().reset(**kwargs)
   
-  def _reward_range(self, board:Optional[np.ndarray]=None):
+  def _reward_threshold(self, board:Optional[np.ndarray]=None):
     """Given a `board` layout, calculates the min and max returns"""
     if self.detailed: return (0, self.max_episode_steps)
     optimal_path = self._validate(board) * self.step_scale if board is not None else 0
-    min_return = self.max_episode_steps * STEP + ('Holes' in self._name) * FAIL * self.max_episode_steps
-    max_return = self.max_episode_steps * GOAL #+ optimal_path * STEP * (self.step_scale == 1)
-    self.reward_threshold = self.max_episode_steps * GOAL + 1.2 * optimal_path * STEP
-    return (min_return, max_return)
+    return self.max_episode_steps * GOAL + 1.2 * optimal_path * STEP
   
   def execute(self, action:gym.spaces.Space) -> tuple[gym.spaces.Space, dict]: 
     """Overwrite this function to perfom step mutaions on the actual environment."""
