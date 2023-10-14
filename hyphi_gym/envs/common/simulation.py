@@ -114,9 +114,9 @@ class Simulation(Board): # Inherits from Board just for reference to vars, init 
     self._toggle_target(True)
     self.set_state(*self.agent)
   
-  def randomize(self, cell:str, board:np.ndarray)->tuple[tuple[int],tuple[int]]:
+  def _randomize(self, cell:str, board:np.ndarray)->tuple[tuple[int],tuple[int]]:
     """Update model upon randomization"""
-    oldpos, newpos = super().randomize(cell, board)
+    oldpos, newpos = super()._randomize(cell, board)
     if cell == AGENT: self.i_apos = self._pos(newpos)
     if cell == TARGET: self.i_tpos = self._pos(newpos)
     return oldpos, newpos

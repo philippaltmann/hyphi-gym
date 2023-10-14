@@ -23,11 +23,8 @@ class Board(Base):
   def __init__(self, size:tuple[int,int], layout:Optional[list[str]], random=[], RADD=[], **kwargs):
     self.random = random; self.random.sort(); Base.__init__(self, **kwargs); self.size = size
     assert all([r in [*RADD, *RAND] for r in random]), f'Please specify all random elements in {[*RADD, *RAND]}'
-    if layout is not None: 
-      self.layout = self._grid(layout)
-      [self.randomize(r[0], self.layout) for r in RAND_KEY if r in random]
-      self.reward_range = self._reward_range(self.layout.copy())
-    if len([r for r in random if r in ['Layouts', *RAND_KEYS]]): self.reward_threshold = 'VARY'
+    rs = len([r for r in random if r in ['Layouts', *RAND_KEYS]])==0
+    if layout is not None: self.layout = self._grid(layout); self.board = self.randomize(self.layout, RAND_KEY, rs)
 
   def ascii(self, grid:Optional[np.ndarray] = None) -> list[str]:
     """Transform 2D-INT Array to list of strings"""
@@ -72,7 +69,14 @@ class Board(Base):
     if error: assert D < self.max_episode_steps+1, 'Environment not solvable.\n'+"\n".join(self.ascii(b))
     return D
   
-  def randomize(self, cell:str, board:np.ndarray) -> tuple[tuple[int], tuple[int]]:
+  def randomize(self, board, keys=RAND, setup=False):
+    if len(random:=[r for r in keys if r in self.random]) or setup: 
+      [self._randomize(r[0], board) for r in random] 
+      if self._validate(board.copy(), error=False) > self.max_episode_steps: return self.randomize(board, keys)
+      self.reward_threshold = self._reward_threshold(board.copy()); self.tpos = self.getpos(board, TARGET)
+    return board.copy()
+  
+  def _randomize(self, cell:str, board:np.ndarray) -> tuple[tuple[int], tuple[int]]:
     """Mutation function to randomize the position of `cell` on `board`"""
     genpos = lambda: tuple([self.np_random.integers(1,s) for s in self.size])
     newpos = genpos(); oldpos = tuple(self.getpos(board=board,cell=cell))
@@ -80,23 +84,17 @@ class Board(Base):
     board[oldpos] = CELLS[FIELD]; board[newpos] = CELLS[cell];
     return (oldpos, newpos)
     
-  def _board(self, layout:Optional[np.ndarray], remove=[], update=False)->np.ndarray:
+  def _board(self, layout:Optional[np.ndarray], remove=[])->np.ndarray:
     """Get the current board according to an optional `layout` and the global random configuration, 
     optionally update globally"""
-    board = layout.copy() if layout is not None else self._generate()
-    [self.randomize(key[0], board) for key in RAND_KEYS if key in self.random]
+    board = layout.copy() if layout is not None else self._generate(); 
+    self.randomize(board, RAND_KEYS)
     for rm in remove: board[tuple(self.getpos(board, rm))] = CELLS[FIELD]
-    if update:
-      if self._validate(board.copy(), error=False) > self.max_episode_steps: 
-        return self._board(layout,remove,update)
-      self.board, self.reward_range = board, self._reward_range(board.copy())
-      self.tpos = self.getpos(board, TARGET)
     return board 
 
   def reset(self, **kwargs)->tuple[gym.spaces.Space, dict]:
     """Gymnasium compliant function to reset the environment""" 
-    super().reset(**kwargs); self._board(self.layout, update=True)
-    if 'seed' in kwargs and kwargs['seed'] is not None: 
-      [self.randomize(r[0], self.layout) for r in RAND_KEY if r in self.random]
-      self.reward_range = self._reward_range(self.layout.copy())
+    if 'seed' in kwargs and kwargs['seed'] is not None and self.layout is not None: 
+      self.layout = self.randomize(self.layout, RAND_KEY, setup=True)
+    self.board = self._board(self.layout); super().reset(**kwargs)
     return self.board.flatten(), {}
