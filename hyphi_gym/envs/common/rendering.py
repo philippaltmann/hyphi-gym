@@ -3,7 +3,8 @@ import tempfile; import time; import os; import math;
 import numpy as np; from PIL import Image
 from hyphi_gym.utils import stdout_redirected
 from hyphi_gym.envs.common.board import *
-try: with stdout_redirected(): import bpy; from mathutils import Vector;                   # type: ignore
+try: 
+  with stdout_redirected(): import bpy; from mathutils import Vector;                   # type: ignore
 except ImportError as e: raise ImportError(f"{e}. (HINT: you need to install bpy, run `pip install bpy`.)")
 
 SCENE = f'{os.path.dirname(__file__)}/../../assets/env.blend'
