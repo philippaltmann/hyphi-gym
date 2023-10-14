@@ -3,10 +3,8 @@ import tempfile; import time; import os; import math;
 import numpy as np; from PIL import Image
 from hyphi_gym.utils import stdout_redirected
 from hyphi_gym.envs.common.board import *
-try: 
-  with stdout_redirected(): import bpy; from mathutils import Vector; 
-except ImportError as e: 
-  raise ImportError(f"{e}. (HINT: you need to install bpy, run `pip install bpy`.)")
+try: with stdout_redirected(): import bpy; from mathutils import Vector;                   # type: ignore
+except ImportError as e: raise ImportError(f"{e}. (HINT: you need to install bpy, run `pip install bpy`.)")
 
 SCENE = f'{os.path.dirname(__file__)}/../../assets/env.blend'
 
@@ -16,7 +14,7 @@ class Rendering(Board):
     is not set upon init, use `setup3D(layout)` once available. """
     with tempfile.TemporaryDirectory() as tmp: self.metadata['tmp'] = tmp
     ox, oy = (s/20+.25 for s in self.size)
-    self._bpos = lambda x,y,t: Vector((x*.1-ox,y*.1-oy, -.2 if t == ' ' else -.1))
+    self._bpos = lambda x,y,t: Vector((x*.1-ox,y*.1-oy, -.2 if t == ' ' else -.1))        # type: ignore
 
     if self.layout is not None: self.setup3D(self.layout)
 
@@ -36,12 +34,12 @@ class Rendering(Board):
     self.scene.render.resolution_x, self.scene.render.resolution_y = self.metadata['render_resolution']
     camera = bpy.data.objects['Camera']                                                   # type: ignore
     cam = { 
-      7: Vector((0.58,0.59,1.22)),  
-      8: Vector((0.67,0.70,1.37)),  
-      9: Vector((0.82,0.83,1.52)),
-      11: Vector((1.05,1.07,1.85)), 
-      13: Vector((1.28,1.30,2.15)), 
-      15: Vector((1.52,1.54,2.48))}
+      7: Vector((0.58,0.59,1.22)),                                                        # type: ignore
+      8: Vector((0.67,0.70,1.37)),                                                        # type: ignore
+      9: Vector((0.82,0.83,1.52)),                                                        # type: ignore
+      11: Vector((1.05,1.07,1.85)),                                                       # type: ignore
+      13: Vector((1.28,1.30,2.15)),                                                       # type: ignore
+      15: Vector((1.52,1.54,2.48))}                                                       # type: ignore
     camera.location = cam[int(sum(self.size)/len(self.size))]
 
   def reset_world(self):
