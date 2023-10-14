@@ -88,7 +88,7 @@ class Board(Base):
     """Get the current board according to an optional `layout` and the global random configuration, 
     optionally update globally"""
     board = layout.copy() if layout is not None else self._generate(); 
-    self.randomize(board, RAND_KEYS)
+    self.randomize(board, RAND_KEYS, setup=layout is None)
     for rm in remove: board[tuple(self.getpos(board, rm))] = CELLS[FIELD]
     return board 
 
