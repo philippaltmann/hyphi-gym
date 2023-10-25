@@ -49,9 +49,9 @@ class Base(gym.Env):
   
   def _reward_threshold(self, board:Optional[np.ndarray]=None):
     """Given a `board` layout, calculates the min and max returns"""
-    if self.detailed: return (0, self.max_episode_steps)
-    optimal_path = self._validate(board) * self.step_scale if board is not None else 0
-    return self.max_episode_steps * GOAL + 1.2 * optimal_path * STEP
+    # if self.detailed: return (0, self.max_episode_steps)
+    if (optimal_path := self._validate(board, error=False)) > self.max_episode_steps: return None
+    return self.max_episode_steps * GOAL + 1.2 * optimal_path * self.step_scale if board is not None else 0 * STEP
   
   def execute(self, action:gym.spaces.Space) -> tuple[gym.spaces.Space, dict]: 
     """Overwrite this function to perfom step mutaions on the actual environment."""
