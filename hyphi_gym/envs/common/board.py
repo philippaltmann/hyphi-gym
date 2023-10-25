@@ -71,9 +71,9 @@ class Board(Base):
   
   def randomize(self, board, keys=RAND, setup=False):
     if len(random:=[r for r in keys if r in self.random]) or setup: 
-      [self._randomize(r[0], board) for r in random] 
-      if self._validate(board.copy(), error=False) > self.max_episode_steps: return self.randomize(board, keys)
-      self.reward_threshold = self._reward_threshold(board.copy()); self.tpos = self.getpos(board, TARGET)
+      [self._randomize(r[0], board) for r in random]; self.tpos = self.getpos(board, TARGET)
+      self.reward_threshold = self._reward_threshold(board.copy())
+      if self.reward_threshold is None: return self.randomize(board, keys)
     return board.copy()
   
   def _randomize(self, cell:str, board:np.ndarray) -> tuple[tuple[int], tuple[int]]:
