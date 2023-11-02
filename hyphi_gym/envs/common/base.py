@@ -5,6 +5,11 @@ from gymnasium.envs.registration import EnvSpec
 # Rewards 
 GOAL, STEP, FAIL = 1/2, -1, -1/2
 
+# Stochasticity
+RAND_KEY = ['Agent', 'Target']; 
+RAND_KEYS = ['Agents', 'Targets']; 
+RAND = [*RAND_KEY, *RAND_KEYS]
+
 class Base(gym.Env):
   """ Base Env Implementing 
   • Truncated Episodes (via `max_episode_steps`)
@@ -12,18 +17,28 @@ class Base(gym.Env):
   • Detailed Rewards (defaults to False)
   • Reward Threshold for Early Stopping 
   • Exploration Mode without reward / target 
+  • Supporting randomization upon init (`Agent` and `Target`), 
+    or, upon reset (`Agents`, `Targets` and items in `RADD`)
   • Seeding nondeterministic environments
   • Generating dynamic spec obejct and env name based on the configuration"""
-  random:list; _name: str
 
-  def __init__(self, max_episode_steps=100, sparse=False, detailed=False, explore=False, seed:Optional[int]=None):
+  _name: str; layout = Optional[np.ndarray]
+
+  def __init__( 
+      self, detailed=False, sparse=False, explore=False, can_fail=False,
+      random=[], RADD=[], seed:Optional[int]=None, max_episode_steps=100
+    ):
     self.max_episode_steps, self._spec = max_episode_steps, {}
     self.dynamic_spec = ['nondeterministic', 'max_episode_steps', 'reward_threshold']
-    min_return = self.max_episode_steps * STEP + ('Holes' in self._name) * FAIL * self.max_episode_steps
+    min_return = self.max_episode_steps * STEP + can_fail * FAIL * self.max_episode_steps
     max_return = self.max_episode_steps * GOAL #+ optimal_path * STEP * (self.step_scale == 1)
     self.reward_range, self.reward_threshold = (min_return, max_return), 'VARY'
-    self.sparse, self.detailed, self.explore, self.nondeterministic = sparse, detailed, explore, len(self.random) > 0; self.seed(seed)
+    self.sparse, self.detailed, self.explore = sparse, detailed, explore
+    self.random = random; self.random.sort(); self.nondeterministic = len(self.random) > 0; self.seed(seed)
+    assert all([r in [*RADD, *RAND] for r in random]), f'Please specify all random elements in {[*RADD, *RAND]}'
     if len(self.random): assert self.np_random is not None, "Please provide a seed to use nondeterministic features"
+    rand_resets = len([r for r in random if r in [*RADD, *RAND_KEYS]])
+    self.layout = self.randomize(self.layout, RAND_KEY, setup = not rand_resets)
 
   @property
   def name(self)->str: 
@@ -42,10 +57,33 @@ class Base(gym.Env):
 
   def seed(self, seed:Optional[int]=None): self.np_random, self._seed = np_random(seed)
 
+  def _randomize(self, layout:np.ndarray, key:str) -> tuple[np.ndarray]: 
+    """Overwrite this function to randomize `layout` w.r.t. `key`
+    Return old and new position"""
+    raise(NotImplementedError)
+
+  def randomize(self, layout, keys=RAND, setup=False):
+    """Helper function to randomize all `keys` in `self.random`. 
+    Randomization can be forced via setup"""
+    if layout is None: return None
+    if len(random := [r for r in keys if r in self.random]) or setup: 
+      layout = layout.copy(); [self._randomize(layout, r) for r in random]; 
+      self.reward_threshold = self._reward_threshold(layout.copy())
+      if self.reward_threshold is None: return self.randomize(layout, keys, setup)
+    return layout
+  
+  def _generate(self)->np.ndarray:
+    """Random generator function for a layout of self.specs"""
+    raise(NotImplementedError)
+
   def reset(self, **kwargs)->tuple[gym.spaces.Space, dict]:
     """Gymnasium compliant function to reset the environment""" 
-    self.reward_buffer, self.termination_resaons = [], []; 
-    return super().reset(**kwargs)
+    super().reset(**kwargs); self.reward_buffer, self.termination_resaons = [], []; 
+    if 'seed' in kwargs and kwargs['seed'] is not None: # Randomize for new seeds
+      self.seed(kwargs['seed']); self.layout = self.randomize(self.layout, RAND_KEY, setup=True) 
+    layout = self._generate() if self.layout is None else self.layout.copy()
+    layout = self.randomize(layout, RAND_KEYS, setup=self.layout is None) # Setup if generated
+    return layout
   
   def _reward_threshold(self, board:Optional[np.ndarray]=None):
     """Given a `board` layout, calculates the min and max returns"""
@@ -59,15 +97,13 @@ class Base(gym.Env):
   
   def step(self, action:gym.spaces.Space) -> tuple[gym.spaces.Space, float, bool, bool, dict]:
     """Gymnasium compliant fucntion to step the environment with `action` using the internal `_step`"""
-    # Step the environment 
-    state, info = self.execute(action)
+    state, info = self.execute(action)  # Step the environment 
 
     # Calculate the reward 
     terminated = 'termination_reason' in info
     if self.explore: reward = 0; terminated = False
-    elif self.detailed: 
-      assert 'distance' in info, "Target distance information needed for detailed reward calulation"
-      reward = np.exp(-info['distance'])
+    elif self.detailed: reward = np.exp(-info['distance'])
+    # assert 'distance' in info, "Target distance information needed for detailed reward calulation"
     else: 
       reward = STEP
       if terminated: reward += self.max_episode_steps * (GOAL if info['termination_reason'] == 'GOAL' else FAIL)

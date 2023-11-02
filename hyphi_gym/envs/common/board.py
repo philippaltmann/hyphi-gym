@@ -4,30 +4,22 @@ from hyphi_gym.envs.common import Base; import gymnasium as gym
 # State Types
 WALL, FIELD, AGENT, TARGET, HOLE = '#', ' ', 'A', 'T', 'H' 
 CELLS = {WALL: 0, FIELD: 1, AGENT: 2, TARGET: 3, HOLE: 4}
+CHARS = list(CELLS.keys()); 
 
 # Actions
 UP, RIGHT, DOWN, LEFT = 0, 1, 2, 3; ACTIONS = [UP, RIGHT, DOWN, LEFT] 
-
-# Stochasticity
-RAND_KEY = ['Agent', 'Target']; RAND_KEYS = ['Agents', 'Targets']; 
-CHARS = list(CELLS.keys()); RAND = [*RAND_KEY, *RAND_KEYS]
-
 
 class Board(Base):
   """Base for grid-based games managing 
   • A `layout` of a variable `size`
   • Containing `CELLS` ∈ `[WALL, FIELD, AGENT, TARGET, HOLE]`
-  • Navigable with `ACTIONS` ∈ `[UP, RIGHT, DOWN,LEFT]`
-  • Supporting randomization of `Agent` and `Target` position 
-    once upon init, or, upon reset (`Agents`, `Targets`)"""
+  • Navigable with `ACTIONS` ∈ `[UP, RIGHT, DOWN,LEFT]`"""
 
   board: np.ndarray; size:tuple[int,int]; layout:Optional[np.ndarray]=None
 
-  def __init__(self, size:tuple[int,int], layout:Optional[list[str]], random=[], RADD=[], **kwargs):
-    self.random = random; self.random.sort(); Base.__init__(self, **kwargs); self.size = size
-    assert all([r in [*RADD, *RAND] for r in random]), f'Please specify all random elements in {[*RADD, *RAND]}'
-    rs = len([r for r in random if r in ['Layouts', *RAND_KEYS]])==0
-    if layout is not None: self.layout = self._grid(layout); self.board = self.randomize(self.layout, RAND_KEY, rs)
+  def __init__(self, size:tuple[int,int], layout:Optional[list[str]], **kwargs):
+    self.layout = self._grid(layout) if layout is not None else None
+    self.size = size; Base.__init__(self, **kwargs); 
 
   def ascii(self, grid:Optional[np.ndarray] = None) -> list[str]:
     """Transform 2D-INT Array to list of strings"""
@@ -53,10 +45,6 @@ class Board(Base):
     """Return possible `n` actions `act` in a bounded box given a position `pos`"""
     return [(pos[0]>n), (pos[1]<self.size[1]-n-1), (pos[0]<self.size[0]-n-1), (pos[1]>n)][act]
 
-  def _generate(self)->np.ndarray:
-    """Random generator function for a grid of size `self.size`"""
-    raise(NotImplementedError)
-  
   def _validate(self, board, error=True):
     def _findPath(b, v, p, t, d, md):
       """Find the path with the shortest distance _d_ in maze _b_ starting from _p_ to _t_, 
@@ -72,32 +60,24 @@ class Board(Base):
     if error: assert D < self.max_episode_steps+1, 'Environment not solvable.\n'+"\n".join(self.ascii(b))
     return D
   
-  def randomize(self, board, keys=RAND, setup=False):
-    if len(random:=[r for r in keys if r in self.random]) or setup: 
-      [self._randomize(r[0], board) for r in random]; self.tpos = self.getpos(board, TARGET)
-      self.reward_threshold = self._reward_threshold(board.copy())
-      if self.reward_threshold is None: return self.randomize(board, keys)
-    return board.copy()
-  
-  def _randomize(self, cell:str, board:np.ndarray) -> tuple[tuple[int], tuple[int]]:
+  def _randomize(self, board:np.ndarray, key:str):
     """Mutation function to randomize the position of `cell` on `board`"""
     genpos = lambda: tuple([self.np_random.integers(1,s) for s in self.size])
-    newpos = genpos(); oldpos = tuple(self.getpos(board=board,cell=cell))
+    newpos = genpos(); oldpos = tuple(self.getpos(board=board,cell=key[0]))
     while CHARS[board[newpos]] != FIELD: newpos = genpos()
-    board[oldpos] = CELLS[FIELD]; board[newpos] = CELLS[cell];
+    board[oldpos] = CELLS[FIELD]; board[newpos] = CELLS[key[0]];
+    if key[0] == TARGET: self.tpos = newpos
     return (oldpos, newpos)
     
   def _board(self, layout:Optional[np.ndarray], remove=[])->np.ndarray:
     """Get the current board according to an optional `layout` and the global random configuration, 
     optionally update globally"""
     board = layout.copy() if layout is not None else self._generate(); 
-    self.randomize(board, RAND_KEYS, setup=layout is None)
+    board = self.randomize(board, setup=layout is None) #TODO: Needed?
+    # self.randomize(board, RAND_KEYS, setup=layout is None) #TODO: Needed?
     for rm in remove: board[tuple(self.getpos(board, rm))] = CELLS[FIELD]
     return board 
 
   def reset(self, **kwargs)->tuple[gym.spaces.Space, dict]:
     """Gymnasium compliant function to reset the environment""" 
-    if 'seed' in kwargs and kwargs['seed'] is not None and self.layout is not None: 
-      self.layout = self.randomize(self.layout, RAND_KEY, setup=True)
-    self.board = self._board(self.layout); super().reset(**kwargs)
-    return self.board.flatten(), {}
+    self.board = super().reset(**kwargs); return self.board.flatten(), {}
