@@ -7,13 +7,13 @@ GOAL, STEP, FAIL = 1/2, -1, -1/2
 
 class Base(gym.Env):
   """ Base Env Implementing 
-  • Trucated Episodes (via `max_episode_steps`)
+  • Truncated Episodes (via `max_episode_steps`)
   • Sparse Rewards (defaults to False)
   • Detailed Rewards (defaults to False)
   • Reward Threshold for Early Stopping 
-  • Exploration Mode, where both the target and the reward are removed. 
-  • Seeding nondeterministic environemtn configureation
-  • Generating a dynamic spec obejct and env name based on the configuration"""
+  • Exploration Mode without reward / target 
+  • Seeding nondeterministic environments
+  • Generating dynamic spec obejct and env name based on the configuration"""
   random:list; _name: str
 
   def __init__(self, max_episode_steps=100, sparse=False, detailed=False, explore=False, seed:Optional[int]=None):
