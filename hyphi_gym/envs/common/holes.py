@@ -25,7 +25,7 @@ class Holes(Board):
     supporting layout, agent-, and target-placement"""
   def __init__(self, level:str, random=[], **kwargs): 
     self._name = f'Holes{level}'; layout = None if 'Layouts' in random else LEVELS[level]
-    Board.__init__(self, size=(7,9), layout=layout, random=random, RADD=['Layouts'], **kwargs)
+    Board.__init__(self, size=(7,9), layout=layout, random=random, RADD=['Layouts'], can_fail=True, **kwargs)
 
   def _generate(self):
     """Random generator for holey grids, placing 6 holes at random positions within a 7x9 gird"""
