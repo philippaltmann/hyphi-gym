@@ -14,9 +14,12 @@ CHARS = list(CELLS.keys()); RAND = [*RAND_KEY, *RAND_KEYS]
 
 
 class Board(Base):
-  """Board: Grid Based Games Base Class managing a `layout`of a variable `size`, extending `Base`.
-  Containining `CELLS` ∈ `[WALL, FIELD, AGENT, TARGET, HOLE]`, navigatable with `ACTIONS` ∈ `[UP, RIGHT, DOWN,LEFT]`, 
-  supporting the randomization of "Agent" and "Target" position on `__init__`, or "Agents" and "Targets" on `reset`."""
+  """Base for grid-based games managing 
+  • A `layout` of a variable `size`
+  • Containing `CELLS` ∈ `[WALL, FIELD, AGENT, TARGET, HOLE]`
+  • Navigable with `ACTIONS` ∈ `[UP, RIGHT, DOWN,LEFT]`
+  • Supporting randomization of `Agent` and `Target` position 
+    once upon init, or, upon reset (`Agents`, `Targets`)"""
 
   board: np.ndarray; size:tuple[int,int]; layout:Optional[np.ndarray]=None
 
