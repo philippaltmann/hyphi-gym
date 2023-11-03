@@ -10,7 +10,7 @@ except ImportError as e: raise ImportError(f"{e}. (HINT: you need to install bpy
 SCENE = f'{os.path.dirname(__file__)}/../../assets/env.blend'
 
 class Rendering(Board):
-  def __init__(self, grid):
+  def __init__(self):
     """Init blender rendering using `grid` mode by default. If `self.layout` 
     is not set upon init, use `setup3D(layout)` once available. """
     with tempfile.TemporaryDirectory() as tmp: self.metadata['tmp'] = tmp
