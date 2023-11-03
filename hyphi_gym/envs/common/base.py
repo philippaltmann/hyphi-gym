@@ -71,8 +71,8 @@ class Base(gym.Env):
     Randomization can be forced via setup"""
     if layout is None: return None
     if len(random := [r for r in keys if r in self.random]) or setup: 
-      layout = layout.copy(); [self._randomize(layout, r) for r in random]; 
-      self.reward_threshold = self._reward_threshold(layout.copy())
+      layout = layout.copy(); [self._randomize(layout, r) for r in random]
+      self.reward_threshold = self._reward_threshold(layout.copy(), setup)
       if self.reward_threshold is None: return self.randomize(layout, keys, setup)
     return layout
   
@@ -89,10 +89,10 @@ class Base(gym.Env):
     layout = self.randomize(layout, RAND_KEYS, setup=self.layout is None) # Setup if generated
     return layout
   
-  def _reward_threshold(self, layout:Optional[np.ndarray]=None):
+  def _reward_threshold(self, layout:Optional[np.ndarray]=None, setup=False):
     """Given a layout, calculates the min and max returns"""
     # if self.detailed: return (0, self.max_episode_steps)
-    if (optimal_path := self._validate(layout, error=False)) > self.max_episode_steps: return None
+    if (optimal_path := self._validate(layout, error=False, setup=setup)) > self.max_episode_steps: return None
     return self.max_episode_steps * GOAL + 1.2 * optimal_path * self.step_scale if layout is not None else 0 * STEP
   
   def execute(self, action:gym.spaces.Space) -> tuple[gym.spaces.Space, dict]: 
