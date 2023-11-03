@@ -60,24 +60,19 @@ class Board(Base):
     if error: assert D < self.max_episode_steps+1, 'Environment not solvable.\n'+"\n".join(self.ascii(b))
     return D
   
+  def _update(self, key:str, oldpos, newpos):
+    super()._update(key, oldpos, newpos)
+    if key[0] == TARGET: self.tpos = newpos
+  
   def _randomize(self, board:np.ndarray, key:str):
     """Mutation function to randomize the position of `cell` on `board`"""
     genpos = lambda: tuple([self.np_random.integers(1,s) for s in self.size])
     newpos = genpos(); oldpos = tuple(self.getpos(board=board,cell=key[0]))
     while CHARS[board[newpos]] != FIELD: newpos = genpos()
     board[oldpos] = CELLS[FIELD]; board[newpos] = CELLS[key[0]];
-    if key[0] == TARGET: self.tpos = newpos
+    self._update(key, oldpos, newpos)
     return (oldpos, newpos)
     
-  def _board(self, layout:Optional[np.ndarray], remove=[])->np.ndarray:
-    """Get the current board according to an optional `layout` and the global random configuration, 
-    optionally update globally"""
-    board = layout.copy() if layout is not None else self._generate(); 
-    board = self.randomize(board, setup=layout is None) #TODO: Needed?
-    # self.randomize(board, RAND_KEYS, setup=layout is None) #TODO: Needed?
-    for rm in remove: board[tuple(self.getpos(board, rm))] = CELLS[FIELD]
-    return board 
-
   def reset(self, **kwargs)->tuple[gym.spaces.Space, dict]:
     """Gymnasium compliant function to reset the environment""" 
     self.board = super().reset(**kwargs); return self.board.flatten(), {}
