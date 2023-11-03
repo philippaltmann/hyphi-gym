@@ -45,7 +45,7 @@ class Board(Base):
     """Return possible `n` actions `act` in a bounded box given a position `pos`"""
     return [(pos[0]>n), (pos[1]<self.size[1]-n-1), (pos[0]<self.size[0]-n-1), (pos[1]>n)][act]
 
-  def _validate(self, board, error=True):
+  def _validate(self, board, error=True, setup=False):
     def _findPath(b, v, p, t, d, md):
       """Find the path with the shortest distance _d_ in maze _b_ starting from _p_ to _t_, 
       using current min distance _md_ and visited states _v_ """
@@ -58,6 +58,7 @@ class Board(Base):
     TPOS = self.getpos(board=board, cell=TARGET); board[tuple(TPOS)]=CELLS[FIELD]
     D = _findPath(board, visited, tuple(APOS), tuple(TPOS), 0, self.max_episode_steps+1)
     if error: assert D < self.max_episode_steps+1, 'Environment not solvable.\n'+"\n".join(self.ascii(b))
+    if setup: self.tpos = TPOS
     return D
   
   def _update(self, key:str, oldpos, newpos):
