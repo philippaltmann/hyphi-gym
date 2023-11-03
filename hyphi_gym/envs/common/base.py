@@ -57,6 +57,10 @@ class Base(gym.Env):
 
   def seed(self, seed:Optional[int]=None): self.np_random, self._seed = np_random(seed)
 
+  def _validate(self, layout:np.ndarray, error:bool) -> int: 
+    """Overwrite this function to validate `layout` return steps to solution"""
+    raise(NotImplementedError)
+
   def _randomize(self, layout:np.ndarray, key:str) -> tuple[np.ndarray]: 
     """Overwrite this function to randomize `layout` w.r.t. `key`
     Return old and new position"""
@@ -85,11 +89,11 @@ class Base(gym.Env):
     layout = self.randomize(layout, RAND_KEYS, setup=self.layout is None) # Setup if generated
     return layout
   
-  def _reward_threshold(self, board:Optional[np.ndarray]=None):
-    """Given a `board` layout, calculates the min and max returns"""
+  def _reward_threshold(self, layout:Optional[np.ndarray]=None):
+    """Given a layout, calculates the min and max returns"""
     # if self.detailed: return (0, self.max_episode_steps)
-    if (optimal_path := self._validate(board, error=False)) > self.max_episode_steps: return None
-    return self.max_episode_steps * GOAL + 1.2 * optimal_path * self.step_scale if board is not None else 0 * STEP
+    if (optimal_path := self._validate(layout, error=False)) > self.max_episode_steps: return None
+    return self.max_episode_steps * GOAL + 1.2 * optimal_path * self.step_scale if layout is not None else 0 * STEP
   
   def execute(self, action:gym.spaces.Space) -> tuple[gym.spaces.Space, dict]: 
     """Overwrite this function to perfom step mutaions on the actual environment."""
