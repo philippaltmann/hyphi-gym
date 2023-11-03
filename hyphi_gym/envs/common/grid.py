@@ -3,9 +3,9 @@ from typing import Optional; from os import path
 
 from hyphi_gym.envs.common.board import *
 from hyphi_gym.envs.common.rendering import Rendering
-from hyphi_gym.envs.common.simulation import Simulation
+from hyphi_gym.envs.common.point import Point
 
-class Grid(Simulation, Rendering): 
+class Grid(Rendering, Point): 
   step_scale = 1  # Used for calculating max_episode_steps according to grid size
   base_xml = path.join(path.dirname(path.realpath(__file__)), "../../assets/grid.xml")
 
@@ -13,10 +13,12 @@ class Grid(Simulation, Rendering):
   def __init__(self, render_mode:Optional[str]=None, **simargs):
     self.observation_space = gym.spaces.MultiDiscrete(np.full(np.prod(self.size), len(CHARS)))
     self.action_space = gym.spaces.Discrete(4); self.action_space.seed(self._seed)
-    assert render_mode is None or render_mode in self.metadata["render_modes"]; self.render_mode = render_mode
+    assert render_mode is None or render_mode in self.metadata["render_modes"]; 
+    self.render_mode = render_mode
     if render_mode is not None: 
-      self.renderer = Rendering if render_mode == 'blender' else Simulation
-      self.renderer.__init__(self, grid=True, **simargs)
+      self.renderer = Rendering if render_mode == 'blender' else Point
+      rargs = dict(grid=True, render_mode=render_mode, frame_skip=0.1)
+      self.renderer.__init__(self, **({} if render_mode is 'blender' else rargs))
         
   def render(self) -> Optional[np.ndarray]:
     """Return rendering of current state as np array if render_mode set"""
