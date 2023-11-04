@@ -12,7 +12,7 @@ setup(
   keywords="reinforcement-learning robustness benchmark gymnasium gridworld maze mujoco openai gym",
   long_description=(Path(__file__).parent / "README.md").read_text(), long_description_content_type="text/markdown",
   packages=[package for package in find_packages() if package.startswith("hyphi_gym")],
-  package_data={"hyphi_gym": ["assets/*", "assets/Agent/*"]},
+  package_data={"hyphi_gym": ["assets/*", "assets/Agent/*", "assets/fetch/*"]},
   install_requires=[
     "gymnasium>=0.29",# Bump to 1.0 once available 
     'numpy>=1.20',      # Utils
