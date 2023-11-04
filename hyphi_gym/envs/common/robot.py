@@ -22,7 +22,7 @@ from hyphi_gym.envs.common import Base
 
 class Robot(Base, Simulation):
   """Continous-control robot base class"""
-
+  step_scale = 10
   metadata = {"render_modes": ["3D"], "render_resolution": (720,720)}   
   default_cam_config = {"distance": 2, "azimuth": 135, "elevation": -16, "lookat": np.array([1, 0.85, 0.85])}
 
