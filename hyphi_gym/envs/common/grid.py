@@ -17,7 +17,7 @@ class Grid(Rendering, Point):
     self.render_mode = render_mode
     if render_mode is not None: 
       self.renderer = Rendering if render_mode == 'blender' else Point
-      rargs = dict(grid=True, render_mode=render_mode, frame_skip=0.1)
+      rargs = dict(grid=True, render_mode=render_mode, frame_skip=20)
       self.renderer.__init__(self, **({} if render_mode is 'blender' else rargs))
         
   def render(self) -> Optional[np.ndarray]:
