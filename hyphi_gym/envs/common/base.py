@@ -22,7 +22,7 @@ class Base(gym.Env):
   • Seeding nondeterministic environments
   • Generating dynamic spec obejct and env name based on the configuration"""
 
-  _name: str; layout = Optional[np.ndarray]
+  _name: str; layout: Optional[np.ndarray] = None
 
   def __init__( 
       self, detailed=False, sparse=False, explore=False, can_fail=False,
@@ -57,7 +57,7 @@ class Base(gym.Env):
 
   def seed(self, seed:Optional[int]=None): self.np_random, self._seed = np_random(seed)
 
-  def _validate(self, layout:np.ndarray, error:bool) -> int: 
+  def _validate(self, layout:np.ndarray, error:bool, setup:bool) -> int: 
     """Overwrite this function to validate `layout` return steps to solution"""
     raise(NotImplementedError)
 
