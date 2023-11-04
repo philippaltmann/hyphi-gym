@@ -1,14 +1,278 @@
-from typing import Union
-
+from typing import Union; import numpy as np
 try:
+  from mujoco import MjData as MujocoData             # type: ignore
+  from mujoco import mjtEq as MujocoEq                # type: ignore
   from mujoco import MjModel as MujocoModel           # type: ignore
   from mujoco import mjtObj as MujocoObject           # type: ignore
+  from mujoco import mjtJoint as MujocoJoint          # type: ignore
   from mujoco import mj_name2id as mujoco_name2id     # type: ignore
+  from mujoco import mj_forward as mujoco_forward     # type: ignore
+  from mujoco import mj_jacSite as mujoco_jacSite     # type: ignore
 except ImportError as e: 
   import gymnasium
-  raise gymnasium.error.DependencyNotInstalled( f"{e}. (HINT: you need to install mujoco, run `pip install gymnasium[mujoco]`.)")
+  raise gymnasium.error.DependencyNotInstalled( f"{e}. (HINT: you need to install mujoco.)")
 
 MJ_OBJ_TYPES = ["mjOBJ_BODY","mjOBJ_JOINT","mjOBJ_GEOM","mjOBJ_SITE","mjOBJ_CAMERA","mjOBJ_ACTUATOR","mjOBJ_SENSOR"]
+
+def robot_get_obs(model, data, joint_names):
+    """Returns all joint positions and velocities associated with a robot."""
+    if data.qpos is not None and joint_names:
+        names = [n for n in joint_names if n.startswith("robot")]
+        return (
+            np.squeeze(np.array([get_joint_qpos(model, data, name) for name in names])),
+            np.squeeze(np.array([get_joint_qvel(model, data, name) for name in names])),
+        )
+    return np.zeros(0), np.zeros(0)
+
+
+def ctrl_set_action(model, data, action):
+    """For torque actuators it copies the action into mujoco ctrl field.
+
+    For position actuators it sets the target relative to the current qpos.
+    """
+    if model.nmocap > 0:
+        _, action = np.split(action, (model.nmocap * 7,))
+
+    if len(data.ctrl) > 0:
+        for i in range(action.shape[0]):
+            if model.actuator_biastype[i] == 0:
+                data.ctrl[i] = action[i]
+            else:
+                idx = model.jnt_qposadr[model.actuator_trnid[i, 0]]
+                data.ctrl[i] = data.qpos[idx] + action[i]
+
+
+def mocap_set_action(model, data, action):
+    """Update the position of the mocap body with the desired action.
+
+    The action controls the robot using mocaps. Specifically, bodies
+    on the robot (for example the gripper wrist) is controlled with
+    mocap bodies. In this case the action is the desired difference
+    in position and orientation (quaternion), in world coordinates,
+    of the target body. The mocap is positioned relative to
+    the target body according to the delta, and the MuJoCo equality
+    constraint optimizer tries to center the welded body on the mocap.
+    """
+    if model.nmocap > 0:
+        action, _ = np.split(action, (model.nmocap * 7,))
+        action = action.reshape(model.nmocap, 7)
+
+        pos_delta = action[:, :3]
+        quat_delta = action[:, 3:]
+
+        reset_mocap2body_xpos(model, data)
+        data.mocap_pos[:] = data.mocap_pos + pos_delta
+        data.mocap_quat[:] = data.mocap_quat + quat_delta
+
+
+def reset_mocap_welds(model, data):
+    """Resets the mocap welds that we use for actuation."""
+    if model.nmocap > 0 and model.eq_data is not None:
+        for i in range(model.eq_data.shape[0]):
+            if model.eq_type[i] == MujocoEq.mjEQ_WELD:
+                model.eq_data[i, :7] = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0])
+    mujoco_forward(model, data)
+
+
+def reset_mocap2body_xpos(model, data):
+    """Resets the position and orientation of the mocap bodies to the same
+    values as the bodies they're welded to.
+    """
+
+    if model.eq_type is None or model.eq_obj1id is None or model.eq_obj2id is None:
+        return
+    for eq_type, obj1_id, obj2_id in zip(
+        model.eq_type, model.eq_obj1id, model.eq_obj2id
+    ):
+        if eq_type != MujocoEq.mjEQ_WELD:
+            continue
+
+        mocap_id = model.body_mocapid[obj1_id]
+        if mocap_id != -1:
+            # obj1 is the mocap, obj2 is the welded body
+            body_idx = obj2_id
+        else:
+            # obj2 is the mocap, obj1 is the welded body
+            mocap_id = model.body_mocapid[obj2_id]
+            body_idx = obj1_id
+
+        assert mocap_id != -1
+        data.mocap_pos[mocap_id][:] = data.xpos[body_idx]
+        data.mocap_quat[mocap_id][:] = data.xquat[body_idx]
+
+
+def get_site_jacp(model, data, site_id):
+    """Return the Jacobian' translational component of the end-effector of
+    the corresponding site id.
+    """
+    jacp = np.zeros((3, model.nv))
+    mujoco_jacSite(model, data, jacp, None, site_id)
+
+    return jacp
+
+
+def get_site_jacr(model, data, site_id):
+    """Return the Jacobian' rotational component of the end-effector of
+    the corresponding site id.
+    """
+    jacr = np.zeros((3, model.nv))
+    mujoco_jacSite(model, data, None, jacr, site_id)
+
+    return jacr
+
+
+def set_joint_qpos(model, data, name, value):
+    """Set the joint positions (qpos) of the model."""
+    joint_id = mujoco_name2id(model, MujocoObject.mjOBJ_JOINT, name)
+    joint_type = model.jnt_type[joint_id]
+    joint_addr = model.jnt_qposadr[joint_id]
+
+    if joint_type == MujocoJoint.mjJNT_FREE:
+        ndim = 7
+    elif joint_type == MujocoJoint.mjJNT_BALL:
+        ndim = 4
+    else:
+        assert joint_type in (MujocoJoint.mjJNT_HINGE, MujocoJoint.mjJNT_SLIDE)
+        ndim = 1
+
+    start_idx = joint_addr
+    end_idx = joint_addr + ndim
+    value = np.array(value)
+    if ndim > 1:
+        assert value.shape == (
+            end_idx - start_idx
+        ), f"Value has incorrect shape {name}: {value}"
+    data.qpos[start_idx:end_idx] = value
+
+
+def set_joint_qvel(model, data, name, value):
+    """Set the joints linear and angular (qvel) of the model."""
+    joint_id = mujoco_name2id(model, MujocoObject.mjOBJ_JOINT, name)
+    joint_type = model.jnt_type[joint_id]
+    joint_addr = model.jnt_dofadr[joint_id]
+
+    if joint_type == MujocoJoint.mjJNT_FREE:
+        ndim = 6
+    elif joint_type == MujocoJoint.mjJNT_BALL:
+        ndim = 3
+    else:
+        assert joint_type in (MujocoJoint.mjJNT_HINGE, MujocoJoint.mjJNT_SLIDE)
+        ndim = 1
+
+    start_idx = joint_addr
+    end_idx = joint_addr + ndim
+    value = np.array(value)
+    if ndim > 1:
+        assert value.shape == (
+            end_idx - start_idx
+        ), f"Value has incorrect shape {name}: {value}"
+    data.qvel[start_idx:end_idx] = value
+
+
+def get_joint_qpos(model, data, name):
+    """Return the joints position and orientation (qpos) of the model."""
+    joint_id = mujoco_name2id(model, MujocoObject.mjOBJ_JOINT, name)
+    joint_type = model.jnt_type[joint_id]
+    joint_addr = model.jnt_qposadr[joint_id]
+
+    if joint_type == MujocoJoint.mjJNT_FREE:
+        ndim = 7
+    elif joint_type == MujocoJoint.mjJNT_BALL:
+        ndim = 4
+    else:
+        assert joint_type in (MujocoJoint.mjJNT_HINGE, MujocoJoint.mjJNT_SLIDE)
+        ndim = 1
+
+    start_idx = joint_addr
+    end_idx = joint_addr + ndim
+
+    return data.qpos[start_idx:end_idx].copy()
+
+
+def get_joint_qvel(model, data, name):
+    """Return the joints linear and angular velocities (qvel) of the model."""
+    joint_id = mujoco_name2id(model, MujocoObject.mjOBJ_JOINT, name)
+    joint_type = model.jnt_type[joint_id]
+    joint_addr = model.jnt_dofadr[joint_id]
+
+    if joint_type == MujocoJoint.mjJNT_FREE:
+        ndim = 6
+    elif joint_type == MujocoJoint.mjJNT_BALL:
+        ndim = 4
+    else:
+        assert joint_type in (MujocoJoint.mjJNT_HINGE, MujocoJoint.mjJNT_SLIDE)
+        ndim = 1
+
+    start_idx = joint_addr
+    end_idx = joint_addr + ndim
+
+    return data.qvel[start_idx:end_idx].copy()
+
+
+def get_site_xpos(model, data, name):
+    site_id = mujoco_name2id(model, MujocoObject.mjOBJ_SITE, name)
+    return data.site_xpos[site_id]
+
+
+def get_site_xvelp(model, data, name):
+    site_id = mujoco_name2id(model, MujocoObject.mjOBJ_SITE, name)
+    jacp = get_site_jacp(model, data, site_id)
+    xvelp = jacp @ data.qvel
+    return xvelp
+
+
+def get_site_xvelr(model, data, name):
+    site_id = mujoco_name2id(model, MujocoObject.mjOBJ_SITE, name)
+    jacp = get_site_jacr(model, data, site_id)
+    xvelp = jacp @ data.qvel
+    return xvelp
+
+
+def set_mocap_pos(model, data, name, value):
+    body_id = mujoco_name2id(model, MujocoObject.mjOBJ_BODY, name)
+    mocap_id = model.body_mocapid[body_id]
+    data.mocap_pos[mocap_id] = value
+
+
+def set_mocap_quat(model: MujocoModel, data: MujocoData, name: str, value):
+    body_id = mujoco_name2id(model, MujocoObject.mjOBJ_BODY, name)
+    mocap_id = model.body_mocapid[body_id]
+    data.mocap_quat[mocap_id] = value
+
+
+def get_site_xmat(model: MujocoModel, data: MujocoData, name: str):
+    site_id = mujoco_name2id(model, MujocoObject.mjOBJ_SITE, name)
+    return data.site_xmat[site_id].reshape(3, 3)
+
+
+# For testing whether a number is close to zero
+_FLOAT_EPS = np.finfo(np.float64).eps
+_EPS4 = _FLOAT_EPS * 4.0
+
+def mat2euler(mat):
+    """Convert Rotation Matrix to Euler Angles.
+
+    See rotation.py for notes
+    """
+    mat = np.asarray(mat, dtype=np.float64)
+    assert mat.shape[-2:] == (3, 3), f"Invalid shape matrix {mat}"
+
+    cy = np.sqrt(mat[..., 2, 2] * mat[..., 2, 2] + mat[..., 1, 2] * mat[..., 1, 2])
+    condition = cy > _EPS4
+    euler = np.empty(mat.shape[:-1], dtype=np.float64)
+    euler[..., 2] = np.where(
+        condition,
+        -np.arctan2(mat[..., 0, 1], mat[..., 0, 0]),
+        -np.arctan2(-mat[..., 1, 0], mat[..., 1, 1]),
+    )
+    euler[..., 1] = np.where(
+        condition, -np.arctan2(-mat[..., 0, 2], cy), -np.arctan2(-mat[..., 0, 2], cy)
+    )
+    euler[..., 0] = np.where(
+        condition, -np.arctan2(mat[..., 1, 2], mat[..., 2, 2]), 0.0
+    )
+    return euler
+
 
 def extract_mj_names(model: MujocoModel, obj_type: MujocoObject) -> tuple[Union[tuple[str, ...], tuple[()]], dict[str, int], dict]:
   if obj_type == MujocoObject.mjOBJ_BODY: name_addr = model.name_bodyadr; n_obj = model.nbody
@@ -21,7 +285,7 @@ def extract_mj_names(model: MujocoModel, obj_type: MujocoObject) -> tuple[Union[
   elif obj_type == MujocoObject.mjOBJ_SENSOR: name_addr = model.name_sensoradr; n_obj = model.nsensor
   elif obj_type == MujocoObject.mjOBJ_TENDON: name_addr = model.name_tendonadr; n_obj = model.ntendon
   elif obj_type == MujocoObject.mjOBJ_MESH: name_addr = model.name_meshadr; n_obj = model.nmesh
-  else: raise ValueError(f"{obj_type} was passed as the MuJoCo model object type but can only be of the following MujocoObject enum types: {MJ_OBJ_TYPES}.")
+  else: raise ValueError(f"{obj_type} was passed as the MuJoCo model object type but can only be of the following MujocoObject enum types: {set_joint_qpos}.")
   id2name = {i: None for i in range(n_obj)}; name2id = {}
   for addr in name_addr:
     name = model.names[addr:].split(b"\x00")[0].decode()
