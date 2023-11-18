@@ -52,7 +52,7 @@ class Point(Simulation):
   def default_cam_config(self): return {
     "azimuth": 90, "elevation": -90, 'lookat': np.array([0,0,0]),
     "distance": sum(self.size) / 4*3 } if self.render_mode == '2D' else { 
-    "azimuth": 135, "elevation": -60, "distance": sum(self.size)/1.125,
+    "azimuth": 135, "elevation": -50, "distance": sum(self.size)/1.125,
     "lookat": np.array([1,-1,1])*sum(self.size)/30} 
 
   def setup_world(self, layout=None):
@@ -64,7 +64,8 @@ class Point(Simulation):
     block = lambda p,cell: ET.SubElement(
         worldbody, "geom", type="box", material=lookup[cell], 
         pos=_str([*self._pos(p), (1 if cell==CELLS[WALL] else -1)*HEIGHT/2]), 
-        size=_str([SIZE/2,SIZE/2,HEIGHT/(1 if cell==CELLS[WALL] else 2)])
+        size=_str([SIZE/2,SIZE/2,HEIGHT/2])
+        # (2 if cell==CELLS[WALL] else 2)
       ) if cell in lookup.keys() else holes.append(self._pos(p))
     [block((i,j), cell) for i,row in enumerate(layout) for j, cell in enumerate(row)]
     self.holes = np.array(holes)
