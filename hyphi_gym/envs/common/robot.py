@@ -35,7 +35,7 @@ class Robot(Base, Simulation):
     self.distance_threshold = distance_threshold; self.has_object = has_object; self.target = target
     self.target_in_the_air = target_in_the_air; self.target_noise = target_noise; Base.__init__(self, **kwargs)
     Simulation.__init__(self, render_mode=render_mode, position_noise=position_noise, frame_skip=frame_skip) 
-    self.observation_space = gym.spaces.Box(-np.inf, np.inf, shape=(10+15*self.has_object,), dtype=np.float64)
+    self.observation_space = gym.spaces.Box(-np.inf, np.inf, shape=(13+15*self.has_object,), dtype=np.float64)
     self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(4,), dtype="float32"); self.action_space.seed(self._seed)
 
   def load_world(self):
@@ -87,6 +87,7 @@ class Robot(Base, Simulation):
     
     agent = np.squeeze(_pos.copy()) if self.has_object else grip_pos.copy()
     target = self._get_pos("target")[0]
+    obs = np.concatenate([obs, target])
     return {'obs': obs, 'target': target, 'agent': agent}
   
 
