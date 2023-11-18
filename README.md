@@ -1,4 +1,4 @@
-## <img src="hyphi_gym/assets/hyphi.png" width="16px"> hyphi gym
+## <img src="hyphi_gym/assets/hyphi.png" width="16px"> hyphi gym 
 
 # Robustness Gymnasium Benchmark Suite
 
@@ -31,7 +31,7 @@ HoleyPlane | HoleyPlaneShift | HoleyPlanes
 
 **Action Space:** 2-dimensional continuous action $\in [-1;1]$ applying force to the point in x- and y-direction.
 
-**Observation Space:** 8-dimensional continuous observtion containing the current position and velocity of the point as well as the distance vector to the target state and the closest hole.
+**Observation Space:** 8-dimensional continuous observation containing the current position and velocity of the point as well as the distance vector to the target state and the closest hole.
 
 **Particularities:** This environment yields simliar safety challenges as the HoleyGrid introduced above. Also, it alows for evaluation of robustness to distributional shifts.
 
@@ -65,11 +65,27 @@ Mazes7![Mazes7](hyphi_gym/assets/render/PointMazes/7.gif) | Mazes9![Mazes9](hyph
 
 **Action Space:** 2-dimensional continuous action $\in [-1;1]$ applying force to the point in x- and y-direction.
 
-**Observation Space:** 6-dimensional continuous observtion containing the current position and velocity of the point as well as the distance vector to the target state.
+**Observation Space:** 6-dimensional continuous observation containing the current position and velocity of the point as well as the distance vector to the target state.
 
-**Particularities:** This environment yields simliar challenges as the GridMaze introduced above. However, in contrast, the anent does not observe the full state of the environment, but only a sparse repreenation of its own position and velocity.
+**Particularities:** This environment yields simliar challenges as the GridMaze introduced above. However, in contrast, the agent does not observe the full state of the environment, but only a sparse representation of its own position and velocity.
 
 **Origin:** This environment is inspried by the Procgen Benchmark \[[Paper](https://arxiv.org/abs/1912.01588)\] \[[Code](https://github.com/openai/procgen)\], and control from D4RL \[[Paper](https://arxiv.org/abs/2004.07219)\] \[[Code](https://github.com/Farama-Foundation/D4RL)\].
+
+## Fetch
+
+FetchReach | FechtSlide | FetchPlace
+:---------:|:----------:|:----------:
+![FetchReach](hyphi_gym/assets/render/Fetch/Reach.png) | ![FechtSlide](hyphi_gym/assets/render/Fetch/Slide.png) | FetchPlace![FetchPlace](hyphi_gym/assets/render/Fetch/Place.png)
+
+**Goal:** Control the  7-DoF [Fetch Mobile Manipulator](https://fetchrobotics.com) robot arm to reach the target by moving the gripper, sliding the object, or picking and placing the object within 100, 200 and 400 steps respectively.
+
+**Action Space:** 4-dimensional continuous action $\in [-1;1]$ controlling the arm displacement in x-, y-, and z-direction as well as the gripper position. In its default configuration, the arm is not reset upon reaching a target and the target is randomly respawned.
+
+**Observation Space:** 13-dimensional continuous observation containing the current position and velocity of the arm, the gripper as well as the position of the target state.
+
+**Particularities:** In combination with the binary reward defined below, this environment yields a sparse exploration challenge. Furthmore it allows for benchmarking the multi-task performance of policies, with further tasks to be added in future versions.
+
+**Origin:** This environment is inspried by the Metaworld Benchmark \[[Paper](https://arxiv.org/pdf/1910.10897.pdf)\] \[[Code](https://github.com/Farama-Foundation/Metaworld)\], based on [this paper](https://arxiv.org/abs/1802.09464), and the Gymnasium Robotics collection \[[Code](https://robotics.farama.org/envs/fetch/)\].
 
 ## Reward Structure
 
@@ -116,7 +132,7 @@ This resembles a more realistic feedback situation and yields an even harder exp
 Furthermore, the following intermediate reward can be constantly supplied to the agent to reduce the challenge of exploration:
 
 $$
-r_t=e^{-\|point-target\|_2}
+r_t=e^{-\|agent-target\|_2}
 $$
 
 Defined by the L2 norm of the current absolute distance between the agent and the target, this detailed reward reflects movement towards the target.
@@ -124,7 +140,7 @@ Defined by the L2 norm of the current absolute distance between the agent and th
 ## Random Variations
 
 All environments comprise further random variations for both the agent's start- and the target-position.
-In line with the maze naming convention, a singular keyword confirms to an initial random position, permanent over environment resets, where a plural keyword causes deterministic positioning on every reset.
+In line with the maze naming convention, a singular keyword confirms to an initial random position, permagent over environment resets, where a plural keyword causes deterministic positioning on every reset.
 Thus, the following variations may be used within the `random` list:
 
 - ``Agent``: Initial position randomized once upon environment creation
@@ -132,9 +148,13 @@ Thus, the following variations may be used within the `random` list:
 - ``Agents``: Initial position randomized upon environment reset
 - ``Targets``: Target posision randomized upon environment reset
 
-HoleyGridAgent(s) | HoleyGridTarget(s) | Maze9Agent(s) | Maze9Target(s)
-:----------------:|:----------------:|:----------------:|:----------------:|
-![GridAgents](hyphi_gym/assets/render/Random/GridAgents.gif) | ![GridTargets](hyphi_gym/assets/render/Random/GridTargets.gif) | ![MazeAgents](hyphi_gym/assets/render/Random/MazeAgents.gif) | ![MazeTargets](hyphi_gym/assets/render/Random/MazeTargets.gif)
+HoleyGridAgent(s) | Maze9Agent(s) | HoleyGridTarget(s) |  Maze9Target(s)
+:----------------:|:-------------:|:------------------:|:----------------:|
+![GridAgents](hyphi_gym/assets/render/Random/GridAgents.gif) | ![MazeAgents](hyphi_gym/assets/render/Random/MazeAgents.gif) | ![GridTargets](hyphi_gym/assets/render/Random/GridTargets.gif) | ![MazeTargets](hyphi_gym/assets/render/Random/MazeTargets.gif)
+
+FetchAgent(s) | FetchTarget(s)
+:------------:|:--------------:|
+![FetchAgents](hyphi_gym/assets/render/Random/FetchAgents.gif) | ![FetchTargets](hyphi_gym/assets/render/Random/FetchTargets.gif)
 
 ## Demo & Test
 
