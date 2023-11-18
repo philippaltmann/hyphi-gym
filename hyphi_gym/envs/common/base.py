@@ -80,12 +80,12 @@ class Base(gym.Env):
     """Random generator function for a layout of self.specs"""
     raise(NotImplementedError)
 
-  def reset(self, **kwargs)->tuple[gym.spaces.Space, dict]:
+  def reset(self, layout=None, **kwargs)->tuple[gym.spaces.Space, dict]:
     """Gymnasium compliant function to reset the environment""" 
     super().reset(**kwargs); self.reward_buffer, self.termination_resaons = [], []; 
     if 'seed' in kwargs and kwargs['seed'] is not None: # Randomize for new seeds
       self.seed(kwargs['seed']); self.layout = self.randomize(self.layout, RAND_KEY, setup=True) 
-    layout = self._generate() if self.layout is None else self.layout.copy()
+    layout = self._generate() if self.layout is None else layout if layout is not None else self.layout.copy()
     layout = self.randomize(layout, RAND_KEYS, setup=self.layout is None) # Setup if generated
     return layout
   
