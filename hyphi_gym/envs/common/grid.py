@@ -11,14 +11,13 @@ class Grid(Rendering, Point):
 
   metadata = {"render_modes": ["2D", "3D", "blender"], "render_fps": 5, "render_resolution": (720,720)} 
   def __init__(self, render_mode:Optional[str]=None, **simargs):
-    self.observation_space = gym.spaces.MultiDiscrete(np.full(np.prod(self.size), len(CHARS)))
-    self.action_space = gym.spaces.Discrete(4); self.action_space.seed(self._seed)
-    assert render_mode is None or render_mode in self.metadata["render_modes"]; 
-    self.render_mode = render_mode
+    assert render_mode is None or render_mode in self.metadata["render_modes"]; self.render_mode = render_mode
     if render_mode is not None: 
       self.renderer = Rendering if render_mode == 'blender' else Point
       rargs = dict(grid=True, render_mode=render_mode, frame_skip=20)
       self.renderer.__init__(self, **({} if render_mode is 'blender' else rargs))
+    self.observation_space = gym.spaces.MultiDiscrete(np.full(np.prod(self.size), len(CHARS)))
+    self.action_space = gym.spaces.Discrete(4); self.action_space.seed(self._seed)
         
   def render(self) -> Optional[np.ndarray]:
     """Return rendering of current state as np array if render_mode set"""
