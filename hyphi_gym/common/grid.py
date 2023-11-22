@@ -1,9 +1,9 @@
 import gymnasium as gym ; import numpy as np
 from typing import Optional; from os import path
 
-from hyphi_gym.envs.common.board import *
-from hyphi_gym.envs.common.rendering import Rendering
-from hyphi_gym.envs.common.point import Point
+from hyphi_gym.common.board import *
+from hyphi_gym.common.rendering import Rendering
+from hyphi_gym.common.point import Point
 
 class Grid(Rendering, Point): 
   step_scale = 1  # Used for calculating max_episode_steps according to grid size

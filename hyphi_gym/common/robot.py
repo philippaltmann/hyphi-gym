@@ -17,8 +17,8 @@ Args:
 """
 
 from typing import Optional; import numpy as np; import gymnasium as gym
-from hyphi_gym.envs.common.simulation import Simulation
-from hyphi_gym.envs.common import Base
+from hyphi_gym.common.simulation import Simulation
+from hyphi_gym.common import Base
 
 class Robot(Base, Simulation):
   """Continous-control robot base class"""

@@ -1,4 +1,4 @@
-from hyphi_gym.envs.common.board import *
+from hyphi_gym.common.board import *
 import numpy as np; import math
 
 LEVELS = {
