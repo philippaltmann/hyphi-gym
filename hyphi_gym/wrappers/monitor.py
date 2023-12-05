@@ -5,7 +5,7 @@ from gymnasium.core import ActType, ObsType;
 from typing import SupportsFloat
 from moviepy.video.io.ImageSequenceClip import ImageSequenceClip
 from hyphi_gym.utils import stdout_redirected
-from hyphi_gym.envs.common import Grid
+from hyphi_gym.common import Grid
 
 from PIL import Image
 
