@@ -69,7 +69,8 @@ class Base(gym.Env):
   def randomize(self, layout, keys=RAND, setup=False):
     """Helper function to randomize all `keys` in `self.random`. 
     Randomization can be forced via setup"""
-    if layout is None: return None
+    if layout is None and not setup: return None
+    if layout is None and setup: layout = self._generate()
     if len(random := [r for r in keys if r in self.random]) or setup: 
       layout = layout.copy(); [self._randomize(layout, r) for r in random]
       self.reward_threshold = self._reward_threshold(layout.copy(), setup)
