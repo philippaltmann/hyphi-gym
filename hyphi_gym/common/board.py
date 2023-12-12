@@ -17,9 +17,9 @@ class Board(Base):
 
   board: np.ndarray; size:tuple[int,int]; layout:Optional[np.ndarray]=None
 
-  def __init__(self, size:tuple[int,int], layout:Optional[list[str]], **kwargs):
+  def __init__(self, size:tuple[int,int], layout:Optional[list[str]], bound=None, **kwargs):
     self.layout = self._grid(layout) if layout is not None else None
-    self.size = size; Base.__init__(self, **kwargs); 
+    self.size = size; self.bound = bound or sum(size) - 6; Base.__init__(self, **kwargs)
 
   def ascii(self, grid:Optional[np.ndarray] = None) -> list[str]:
     """Transform 2D-INT Array to list of strings"""
@@ -44,11 +44,21 @@ class Board(Base):
   def action_possible(self, act:int, pos:tuple[int,int], n=1)->bool: 
     """Return possible `n` actions `act` in a bounded box given a position `pos`"""
     return [(pos[0]>n), (pos[1]<self.size[1]-n-1), (pos[0]<self.size[0]-n-1), (pos[1]>n)][act]
+  
+  def _generate(self):
+    """Random generator for flat grids, creating a grid of `size`"""
+    board = np.pad(np.full(np.subtract(self.size, (2,2)), CELLS[FIELD]), 1, constant_values=CELLS[WALL])
+    board[(self.size[0] - 2,1)] = CELLS[AGENT]; board[(1,self.size[0] - 2)] = CELLS[TARGET]
+    return board
 
   def _validate(self, board, error=True, setup=False):
+    board = board.copy()
+    if 'Flat' in self._name: return sum(self.size)-6 # no-obstacle grids do not need to be validated
+
     def _findPath(b, v, p, t, d, md):
       """Find the path with the shortest distance _d_ in maze _b_ starting from _p_ to _t_, 
       using current min distance _md_ and visited states _v_ """
+      if d > self.bound: return md # Enforce min path length
       if all(a==b for a,b in zip(p,t)): return min(d, md) # Break Condition
       v[p] = True; next = [tuple(n) for n in self.iterate_actions(p, condition=self.action_possible).values()]
       dist = [_findPath(b, v, n, t, d+1, md) for n in next if (b[n]==CELLS[FIELD] and not v[n])]
