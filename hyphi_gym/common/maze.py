@@ -66,7 +66,7 @@ class Maze(Board):
   :param random: optional list of features to be stochastic
     supporting layout, agent-, and target-placement"""
   def __init__(self, size, random=[], prefix='', **kwargs): 
-    assert size % 2 == 1 and 15 >= size >= 3; self.size = size; self._name = f'{prefix}Maze{size}' 
+    self.size = size; self._name = f'{prefix}Maze{size}'
     layout = None if 'Layouts' in random else LEVELS[f"Maze{size}"] # set layout = None for single random generation
     max_path = (self.size-1)**2/2-2; max_steps = math.ceil(max_path * self.step_scale * 1.2 / 100) * 100
     Board.__init__(self, size=(size,size), layout=layout, random=random, RADD=['Layouts'], max_episode_steps=max_steps, bound=int(max_path), **kwargs)

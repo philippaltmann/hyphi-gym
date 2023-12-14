@@ -18,6 +18,7 @@ class Board(Base):
   board: np.ndarray; size:tuple[int,int]; layout:Optional[np.ndarray]=None
 
   def __init__(self, size:tuple[int,int], layout:Optional[list[str]], bound=None, **kwargs):
+    for s in size: assert s % 2 == 1 and 15 >= s >= 7, "Only odd sizes € [7,15] are supported."
     self.layout = self._grid(layout) if layout is not None else None
     self.size = size; self.bound = bound or sum(size) - 6; Base.__init__(self, **kwargs)
 
