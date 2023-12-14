@@ -60,8 +60,11 @@ class Board(Base):
       using current min distance _md_ and visited states _v_ """
       if d > self.bound: return md # Enforce min path length
       if all(a==b for a,b in zip(p,t)): return min(d, md) # Break Condition
-      v[p] = True; next = [tuple(n) for n in self.iterate_actions(p, condition=self.action_possible).values()]
-      dist = [_findPath(b, v, n, t, d+1, md) for n in next if (b[n]==CELLS[FIELD] and not v[n])]
+      v[p] = True; dist = []
+      for n in self.iterate_actions(p, condition=self.action_possible).values():
+        if b[n]==CELLS[FIELD] and not v[n]: 
+          dist.append(_findPath(b, v, n, t, d+1, md))
+          if dist[-1] == self.bound: return self.bound
       v[p] = False; return min([md, *dist])
     b = board.copy(); visited = np.full_like(board, False)
     APOS = self.getpos(board=board, cell=AGENT); board[tuple(APOS)]=CELLS[FIELD]
