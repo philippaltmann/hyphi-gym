@@ -7,7 +7,7 @@ from hyphi_gym.common.point import Point
 
 class Grid(Rendering, Point): 
   step_scale = 1  # Used for calculating max_episode_steps according to grid size
-  base_xml = path.join(path.dirname(path.realpath(__file__)), "../../assets/grid.xml")
+  base_xml = path.join(path.dirname(path.realpath(__file__)), "../assets/grid.xml")
 
   metadata = {"render_modes": ["2D", "3D", "blender"], "render_fps": 5, "render_resolution": (720,720)} 
   def __init__(self, render_mode:Optional[str]=None, **simargs):

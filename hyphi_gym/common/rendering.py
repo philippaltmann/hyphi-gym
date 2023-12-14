@@ -7,7 +7,7 @@ try:
   with stdout_redirected(): import bpy; from mathutils import Vector;                   # type: ignore
 except ImportError as e: raise ImportError(f"{e}. (HINT: you need to install bpy, run `pip install bpy`.)")
 
-SCENE = f'{os.path.dirname(__file__)}/../../assets/env.blend'
+SCENE = f'{os.path.dirname(__file__)}/../assets/env.blend'
 
 class Rendering(Board):
   def __init__(self):
