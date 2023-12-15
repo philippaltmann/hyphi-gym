@@ -53,27 +53,28 @@ class Board(Base):
     return board
 
   def _validate(self, board, error=True, setup=False):
-    board = board.copy()
-    if 'Flat' in self._name: return sum(self.size)-6 # no-obstacle grids do not need to be validated
-
-    def _findPath(b, v, p, t, d, md):
-      """Find the path with the shortest distance _d_ in maze _b_ starting from _p_ to _t_, 
-      using current min distance _md_ and visited states _v_ """
-      if d > self.bound: return md # Enforce min path length
-      if all(a==b for a,b in zip(p,t)): return min(d, md) # Break Condition
-      v[p] = True; dist = []
-      for n in self.iterate_actions(p, condition=self.action_possible).values():
-        if b[n]==CELLS[FIELD] and not v[n]: 
-          dist.append(_findPath(b, v, n, t, d+1, md))
-          if dist[-1] == self.bound: return self.bound
-      v[p] = False; return min([md, *dist])
-    b = board.copy(); visited = np.full_like(board, False)
-    APOS = self.getpos(board=board, cell=AGENT); board[tuple(APOS)]=CELLS[FIELD]
-    TPOS = self.getpos(board=board, cell=TARGET); board[tuple(TPOS)]=CELLS[FIELD]
-    D = _findPath(board, visited, tuple(APOS), tuple(TPOS), 0, self.max_episode_steps+1)
-    if error: assert D < self.max_episode_steps+1, 'Environment not solvable.\n'+"\n".join(self.ascii(b))
+    if 'Flat' in self._name: return self.bound # no-obstacle grids do not need to be validated
+    DIST = self.max_episode_steps+1
+    b = board.copy(); visited = np.full_like(board, False); m = visited.copy()
+    APOS = self.getpos(b, cell=AGENT); b[tuple(APOS)]=CELLS[FIELD]
+    TPOS = self.getpos(b, cell=TARGET); b[tuple(TPOS)]=CELLS[FIELD]    
+    iter = lambda p: self.iterate_actions(p, condition=self.action_possible).values()
+    acts = lambda p, mask: [a for a in iter(p) if b[a]==CELLS[FIELD] and not mask[a]]
+    def _mask(p): m[tuple(p)] = True; [_mask(n) for n in acts(p,m)]; return m
+    def _findPath(position, target, distance, d):
+      """Find the path with the shortest distance on board starting from position to target, 
+      using current min distance _d_ and visited states """
+      if distance > self.bound: return d # Enforce min path length
+      if all(p==t for p,t in zip(position, target)): return min(distance, d) # Break Condition
+      visited[position] = True; dist = []
+      for pos in acts(position, visited):
+        dist.append(_findPath(pos, target, distance+1, d))
+        if dist[-1] == self.bound: return self.bound
+      visited[position] = False; return min([d, *dist])
+    if _mask(APOS)[tuple(TPOS)]: DIST = _findPath(tuple(APOS), tuple(TPOS), 0, DIST)
+    if error: assert DIST < self.max_episode_steps+1, 'Environment not solvable.\n'+"\n".join(self.ascii(board))
     if setup: self.tpos = TPOS
-    return D
+    return DIST
   
   def _update(self, key:str, oldpos, newpos):
     super()._update(key, oldpos, newpos)
