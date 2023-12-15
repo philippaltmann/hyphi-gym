@@ -37,8 +37,8 @@ class Base(gym.Env):
     self.random = random; self.random.sort(); self.nondeterministic = len(self.random) > 0; self.seed(seed)
     assert all([r in [*RADD, *RAND] for r in random]), f'Please specify all random elements in {[*RADD, *RAND]}'
     if len(self.random): assert self.np_random is not None, "Please provide a seed to use nondeterministic features"
-    rand_resets = len([r for r in random if r in [*RADD, *RAND_KEYS]])
-    self.layout = self.randomize(self.layout, RAND_KEY, setup = not rand_resets)
+    self.rands = [r for r in random if r in [*RADD, *RAND_KEYS]]
+    self.layout = self.randomize(self.layout, RAND_KEY, setup = not len(self.rands))
 
   @property
   def name(self)->str: 
@@ -85,7 +85,7 @@ class Base(gym.Env):
     """Gymnasium compliant function to reset the environment""" 
     super().reset(**kwargs); self.reward_buffer, self.termination_resaons = [], []; 
     if 'seed' in kwargs and kwargs['seed'] is not None: # Randomize for new seeds
-      self.seed(kwargs['seed']); self.layout = self.randomize(self.layout, RAND_KEY, setup=True) 
+      self.seed(kwargs['seed']); self.layout = self.randomize(self.layout, RAND_KEY, setup = not len(self.rands)) 
     layout = self._generate() if self.layout is None else layout if layout is not None else self.layout.copy()
     layout = self.randomize(layout, RAND_KEYS, setup=self.layout is None) # Setup if generated
     return layout
