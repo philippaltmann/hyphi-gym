@@ -6,9 +6,19 @@ Gym-0.29 based compilation of benchmark environmens for various discrete action 
 
 ## Holey Grid
 
-HoleyGrid | HoleyGridShift | HoleyGrids
-:--------:|:--------:|:--------:|
-![HoleyGrid](hyphi_gym/assets/render/Holes/Grid.png) | ![HoleyGridShift](hyphi_gym/assets/render/Holes/GridShift.png) | ![ HoleyGrids](hyphi_gym/assets/render/Holes/Grids.gif)
+To specifically assess the robustness to distributional shift, we offer the following static layouts:
+
+HoleyGrid | HoleyGridShift
+:--------:|:--------:|
+![HoleyGrid](hyphi_gym/assets/render/Holes/Grid.png) | ![HoleyGridShift](hyphi_gym/assets/render/Holes/GridShift.png)
+
+Additionally, the following generated opions are supported:
+
+HoleyGrid7![HoleyGrid7](hyphi_gym/assets/render/Holes/Grid7.png) | HoleyGrid9![HoleyGrid9](hyphi_gym/assets/render/Holes/Grid9.png) | HoleyGrid11![HoleyGrid11](hyphi_gym/assets/render/Holes/Grid11.png) | HoleyGrid13![HoleyGrid13](hyphi_gym/assets/render/Holes/Grid13.png) | HoleyGrid15![HoleyGrid15](hyphi_gym/assets/render/Holes/Grid15.png)
+:-:|:-:|:--:|:--:|:--:|
+HoleyGrids7![HoleyGrids7](hyphi_gym/assets/render/Holes/Grids7.gif) | HoleyGrids9![HoleyGrids9](hyphi_gym/assets/render/Holes/Grids9.gif) | HoleyGrids11![HoleyGrids11](hyphi_gym/assets/render/Holes/Grids11.gif) | HoleyGrids13![HoleyGrids13](hyphi_gym/assets/render/Holes/Grids13.gif) | HoleyGrids15![HoleyGrids15](hyphi_gym/assets/render/Holes/Grids15.gif)
+
+All generated layouts are ensured to have a valid solution path of lenght $n+m-6$ for $n \times m$ grids.
 
 **Goal:** Navigate to the target state whilst avoiding unsafe states (holes). Episodes are terminated upon reaching the maximum of 100 steps, visiting an unsafe area, or reaching the target, yielding the termination reasons `TIME`, `FAIL`, and `GOAL` respectively.
 
@@ -37,7 +47,7 @@ HoleyPlane | HoleyPlaneShift | HoleyPlanes
 
 **Origin:** This environment is inspried by the AI Safety Gridworlds \[[Paper](https://arxiv.org/abs/1711.09883)\] \[[Code](https://github.com/deepmind/ai-safety-gridworlds)\], and control from D4RL \[[Paper](https://arxiv.org/abs/2004.07219)\] \[[Code](https://github.com/Farama-Foundation/D4RL)\].
 
-## Grid Maze
+## GridMaze
 
 Maze7![Maze7](hyphi_gym/assets/render/Maze/7.png) | Maze9![Maze9](hyphi_gym/assets/render/Maze/9.png) | Maze11![Maze11](hyphi_gym/assets/render/Maze/11.png) | Maze13![Maze13](hyphi_gym/assets/render/Maze/13.png) | Maze15![Maze15](hyphi_gym/assets/render/Maze/15.png)
 :-:|:-:|:--:|:--:|:--:|
@@ -70,6 +80,21 @@ Mazes7![Mazes7](hyphi_gym/assets/render/PointMazes/7.gif) | Mazes9![Mazes9](hyph
 **Particularities:** This environment yields simliar challenges as the GridMaze introduced above. However, in contrast, the agent does not observe the full state of the environment, but only a sparse representation of its own position and velocity.
 
 **Origin:** This environment is inspried by the Procgen Benchmark \[[Paper](https://arxiv.org/abs/1912.01588)\] \[[Code](https://github.com/openai/procgen)\], and control from D4RL \[[Paper](https://arxiv.org/abs/2004.07219)\] \[[Code](https://github.com/Farama-Foundation/D4RL)\].
+
+## Flat Grid
+
+Base Grid Environment without obstacles and holes:
+
+FlatGrid7![FlatGrid7](hyphi_gym/assets/render/Flat/Grid7.png) | FlatGrid9![FlatGrid9](hyphi_gym/assets/render/Flat/Grid9.png) | FlatGrid11![FlatGrid11](hyphi_gym/assets/render/Flat/Grid11.png) | FlatGrid13![FlatGrid13](hyphi_gym/assets/render/Flat/Grid13.png) | FlatGrid15![FlatGrid15](hyphi_gym/assets/render/Flat/Grid15.png)
+:-:|:-:|:--:|:--:|:--:|
+
+**Goal:** Navigate the grid to reach the target within 100 steps.
+
+**Action Space:** $\mathcal{A}\in\{Up,Right,Down,Left\}$
+
+**Observation Space:** fully observable discrete observation of the variable-sized grid with all cells $\in \{A,F,G,W\}$ encoded as integers.  
+
+**Reward structure:** Each step is rewarded $-1$ to foster the shortest path. Reaching the target terminates the episode and is rewarded $50$. All episodes are temrinated after 100 steps ressulting in two termination reasons: GOAL, TIME. The reward is either distributed in a dense fashion after every step, or sparse upon episode termination. Reward ranges are updated according to the current layout.
 
 ## Fetch
 
