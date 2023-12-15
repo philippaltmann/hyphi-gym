@@ -7,6 +7,7 @@ def register_envs():
   register(id="HoleyPlane", entry_point="hyphi_gym.envs:HoleyPlane")
   register(id="GridMaze", entry_point="hyphi_gym.envs:GridMaze") 
   register(id="PointMaze", entry_point="hyphi_gym.envs:PointMaze")
+  register(id="FlatGrid", entry_point="hyphi_gym.envs:FlatGrid")
   register(id="Fetch", entry_point="hyphi_gym.envs:Fetch")
 
 def named(name):
@@ -23,8 +24,13 @@ def named(name):
   if 'Holey' in name:
     if 'Grids' in name or 'Planes' in name: random.append('Layouts')
     id = 'HoleyGrid' if 'Grid' in name else 'HoleyPlane'
-    level = {'id': id, 'level': 'Shift' if 'Shift' in name else 'Train'}
+    if len(s:=re.findall(r'\d+', name)): level = int(s[0])
+    else: level ='Shift' if 'Shift' in name else 'Train'
+    level = {'id': id, 'level': level}
     name = reduce(lambda n,r: n.replace(r,''), ['Holey','Shift','Planes','Plane','Grids','Grid'], name)
+  if 'FlatGrid' in name:
+    id = 'FlatGrid'; size = int(re.findall(r'\d+', name)[0]); level= {'id':id, 'size': size}
+    name = reduce(lambda n,r: n.replace(r,''), ['Flat','Grid'], name)
   if 'Fetch' in name:
     tasks = ['Reach']
     level = {'id': 'Fetch', 'task': ''.join([t for t in tasks if t in name])}
@@ -33,9 +39,3 @@ def named(name):
   name = name.replace('Sparse','').replace('Explore','').replace('Detailed','')
   random = [*random, *re.findall('[A-Z][^A-Z]*', name)]
   return {**level, **args, 'random': random, }
-
-#Sparse, Explore, Agent, Target, Agents, Targets
-ENVS = [
-  'HoleyGrid', 'HoleyGridShift',  'HoleyGrids', 'HoleyPlane', 'HoleyPlaneShift',  'HoleyPlanes', 
-  [[[f'{base}Maze{s}', f'{base}Mazes{s}'] for s in [7,9,11,13,15]] for base in ['Grid', 'Point']],
-]
