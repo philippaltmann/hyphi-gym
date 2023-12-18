@@ -74,7 +74,7 @@ class Maze(Board):
   def _generate(self):
     """Generate random mazes of `self.size` using `Kruskal's algorithm. 
     Generated mazes are forced to difer the static configurations above."""
-    APOS, GPOS = (self.size[0]-2,1), (1,self.size[1]-2)
+    APOS, TPOS = (self.size[0]-2,1), (1,self.size[1]-2)
     maze, visited = np.full(self.size, CELLS[WALL]), []
     def visit(position, d=2): # Carve out" empty spaces in the maze 
       maze[position] = CELLS[FIELD]; visited.append(position)
@@ -85,6 +85,6 @@ class Maze(Board):
         if not len(actions): return
         action = self.np_random.choice(actions); intermediate = self.newpos(position,action)
         maze[intermediate] = CELLS[FIELD]; t = visit(self.newpos(intermediate,action),d)
-    visit(APOS); maze[APOS],maze[GPOS] = CELLS[AGENT], CELLS[TARGET];
+    visit(APOS); maze[APOS],maze[TPOS] = CELLS[AGENT], CELLS[TARGET];
     if self.ascii(maze) in LEVELS[f'Maze{self.size[0]}']: return self._generate()
     return maze

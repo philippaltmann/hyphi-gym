@@ -53,8 +53,7 @@ class Board(Base):
     return board
 
   def _validate(self, board, error=True, setup=False):
-    if 'Flat' in self._name: return self.bound # no-obstacle grids do not need to be validated
-    DIST = self.max_episode_steps+1
+    DIST = self.max_episode_steps+1 
     b = board.copy(); visited = np.full_like(board, False); m = visited.copy()
     APOS = self.getpos(b, cell=AGENT); b[tuple(APOS)]=CELLS[FIELD]
     TPOS = self.getpos(b, cell=TARGET); b[tuple(TPOS)]=CELLS[FIELD]    
