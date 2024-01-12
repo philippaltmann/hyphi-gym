@@ -32,9 +32,11 @@ class Robot(Base, Simulation):
                frame_skip: int = 20, position_noise: float = 0.25, render_mode = None, **kwargs):
 
     self.agent = agent; self.block_gripper = block_gripper; self.continue_task = continue_task
+    if continue_task: kwargs['random'] = ['Targets'];self.detailed=True
     self.distance_threshold = distance_threshold; self.has_object = has_object; self.target = target
-    self.target_in_the_air = target_in_the_air; self.target_noise = target_noise; Base.__init__(self, **kwargs)
+    self.target_in_the_air = target_in_the_air; self.target_noise = target_noise; 
     Simulation.__init__(self, render_mode=render_mode, position_noise=position_noise, frame_skip=frame_skip) 
+    Base.__init__(self, **kwargs)
     self.observation_space = gym.spaces.Box(-np.inf, np.inf, shape=(13+15*self.has_object,), dtype=np.float64)
     self.action_space = gym.spaces.Box(-1.0, 1.0, shape=(4,), dtype="float32"); self.action_space.seed(self._seed)
 
@@ -42,7 +44,7 @@ class Robot(Base, Simulation):
     """Helper function to load a generated world from `self.model_path` falling back to `self.base_xml`"""
     super().load_world(); initial = {"robot0:slide0": 0.1, "robot0:slide1": 0.73, "robot0:slide2": 0.375}
     if self.has_object: initial = {**initial, "object0:joint": [1.25, 0.53, 0.4, 1, 0, 0, 0],}
-    self._set_pos(initial); self._position_mocap() # Move end effector into position
+    self._set_pos(initial); #self._position_mocap() # Move end effector into position
     if self.has_object: self.height_offset = self._get_pos("object0")[0][2]
     self.set_world()
 
@@ -56,6 +58,7 @@ class Robot(Base, Simulation):
   # Helper functions to manage mocap, target and object positioning 
   def _position_mocap(self, pos=None, rot=[1.0, 0.0, 1.0, 0.0]):
     pos = getattr(self, '_agent', pos if pos is not None else self._noisy(self.agent))
+    # if 'Agents' not in self.random: self._agent = pos # FetchReach with same startPos
     if not self.continue_task and 'Agents' not in self.random: self._agent = pos
     self._set_mocap(pos, rot, "robot0:mocap"); [self.do_simulation() for _ in range(10)]
 
@@ -93,7 +96,7 @@ class Robot(Base, Simulation):
 
   def execute(self, action:np.ndarray) -> tuple[dict, dict]:
     """Executes the action, returns the new state, info, and distance between agent and target
-    Action should be 4d array containing x,y,z, and gripper displacement in [-1,1]"""    
+    Action should be 4d array containing x,y,z, and gripper displacement in [-1,1]"""
     if np.array(action).shape != self.action_space.shape: raise ValueError("Action dimension mismatch")
     action = np.clip(action.copy(), self.action_space.low, self.action_space.high)
     pos_ctrl, gripper_ctrl = action[:3] * 0.05, np.array([action[-1], action[-1]])
@@ -104,7 +107,9 @@ class Robot(Base, Simulation):
     self.do_simulation(np.concatenate([pos_ctrl, rot_ctrl, gripper_ctrl]))
     state = self.state_vector(); d = np.linalg.norm(state['target'] - state['agent'], axis=-1)
     info = {'distance': d}
-    if (d < self.distance_threshold): info = {**info, 'termination_reason':'GOAL'}
+    if (d < self.distance_threshold):
+      if self.continue_task: self._reset(self.layout); info = {**info, 'R':1/2}
+      else: info = {**info, 'termination_reason':'GOAL'}
     return state['obs'], info
 
   # Gym API
@@ -113,7 +118,7 @@ class Robot(Base, Simulation):
   def reset(self, **kwargs)->tuple[gym.spaces.Space, dict]:
     """Reset the environment simulation and randomize if needed"""
     if not self.continue_task: self.reset_world()
-    super().reset(**kwargs)
+    self._position_mocap(); super().reset(**kwargs)
     state = self.state_vector(); d = np.linalg.norm(state['target'] - state['agent'], axis=-1)
     info = {'distance': d}
     if (d < self.distance_threshold): info = {**info, 'termination_reason':'GOAL'}
