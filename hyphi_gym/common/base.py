@@ -34,11 +34,11 @@ class Base(gym.Env):
     max_return = self.max_episode_steps * GOAL #+ optimal_path * STEP * (self.step_scale == 1)
     self.reward_range, self.reward_threshold = (min_return, max_return), 'VARY'
     self.sparse, self.detailed, self.explore = sparse, detailed, explore
-    self.random = random; self.random.sort(); self.nondeterministic = len(self.random) > 0; self.seed(seed)
+    self.rands = [r for r in random if r in [*RADD, *RAND_KEYS]]
+    self.random = random; self.random.sort(); self.nondeterministic = len(self.random) > 0
+    self.seed(seed)
     assert all([r in [*RADD, *RAND] for r in random]), f'Please specify all random elements in {[*RADD, *RAND]}'
     if len(self.random): assert self.np_random is not None, "Please provide a seed to use nondeterministic features"
-    self.rands = [r for r in random if r in [*RADD, *RAND_KEYS]]
-    self.layout = self.randomize(self.layout, RAND_KEY, setup = not len(self.rands))
 
   @property
   def name(self)->str: 
@@ -55,7 +55,9 @@ class Base(gym.Env):
     """Function to mutate the internal environment spec (e.g., for adapting max_episode_steps)"""
     self._spec = {k:v for k,v in spec.__dict__.items() if k not in ['namespace','name','version']}
 
-  def seed(self, seed:Optional[int]=None): self.np_random, self._seed = np_random(seed)
+  def seed(self, seed:Optional[int]=None): 
+    self.np_random, self._seed = np_random(seed)
+    self.layout = self.randomize(self.layout, RAND_KEY, setup = not len(self.rands))
 
   def _validate(self, layout:np.ndarray, error:bool, setup:bool) -> int: 
     """Overwrite this function to validate `layout` return steps to solution"""
@@ -81,14 +83,16 @@ class Base(gym.Env):
     """Random generator function for a layout of self.specs"""
     raise(NotImplementedError)
 
-  def reset(self, layout=None, **kwargs)->tuple[gym.spaces.Space, dict]:
-    """Gymnasium compliant function to reset the environment""" 
-    super().reset(**kwargs); self.reward_buffer, self.termination_resaons = [], []; 
-    if 'seed' in kwargs and kwargs['seed'] is not None: # Randomize for new seeds
-      self.seed(kwargs['seed']); self.layout = self.randomize(self.layout, RAND_KEY, setup = not len(self.rands)) 
+  def _reset(self, layout):
     layout = self._generate() if self.layout is None else layout if layout is not None else self.layout.copy()
     layout = self.randomize(layout, RAND_KEYS, setup=self.layout is None) # Setup if generated
     return layout
+
+  def reset(self, layout=None, **kwargs)->tuple[gym.spaces.Space, dict]:
+    """Gymnasium compliant function to reset the environment""" 
+    super().reset(**kwargs); self.reward_buffer, self.termination_resaons = [], []; 
+    if 'seed' in kwargs and kwargs['seed'] is not None: self.seed(kwargs['seed'])
+    return self._reset(layout)
   
   def _reward_threshold(self, layout:Optional[np.ndarray]=None, setup=False):
     """Given a layout, calculates the min and max returns"""
@@ -112,6 +116,7 @@ class Base(gym.Env):
     else: 
       reward = STEP
       if terminated: reward += self.max_episode_steps * (GOAL if info['termination_reason'] == 'GOAL' else FAIL)
+      if 'R' in info: reward += self.max_episode_steps * info['R']
     self.reward_buffer.append(reward)
     
     truncated = self.max_episode_steps is not None and len(self.reward_buffer) >= self.max_episode_steps
