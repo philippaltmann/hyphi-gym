@@ -41,7 +41,7 @@ class Monitor(gym.Wrapper[ObsType, ActType, ObsType, ActType]):
     self.states.append(state); self.actions.append(action); self.rewards.append(float(reward))
     if self.record_video: self._frame_buffer.append(self.render())
     if terminated or truncated:
-      self.needs_reset = True; ep_rew = sum(self.rewards); ep_len = len(self.rewards); self.states.pop(-1); self.actions.pop(-1)
+      self.needs_reset = True; ep_rew = sum(self.rewards); ep_len = len(self.rewards); self.states.pop(-1)
       ep_info = {"r": round(ep_rew, 6), "l": ep_len, "t": round(time.time() - self.t_start, 6), 'history': self._history()}
       ep_info['reward_threshold'] = self.env.unwrapped.reward_threshold
       self._episode_returns.append(ep_rew); 
