@@ -16,7 +16,8 @@ class Grid(Rendering, Point):
       self.renderer = Rendering if render_mode == 'blender' else Point
       rargs = dict(grid=True, render_mode=render_mode, frame_skip=20)
       self.renderer.__init__(self, **({} if render_mode == 'blender' else rargs))
-    self.observation_space = gym.spaces.Box(low=min(CELLS.values()), high=max(CELLS.values()), shape=(np.prod(self.size),), dtype=np.int64, seed=self._seed)
+    self.observation_space = gym.spaces.MultiDiscrete(np.full(np.prod(self.size), len(CHARS)))
+    # self.observation_space = gym.spaces.Box(low=min(CELLS.values()), high=max(CELLS.values()), shape=(np.prod(self.size),), dtype=np.int64, seed=self._seed)
     self.action_space = gym.spaces.Discrete(n=4, seed=self._seed)
         
   def render(self) -> Optional[np.ndarray]:
