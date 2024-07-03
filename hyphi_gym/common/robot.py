@@ -1,24 +1,23 @@
 """ MuJoCo-Based Fetch (https://fetchrobotics.com) environment insipired by:
 - 'Gymnasium Robotics' by Rodrigo de Lazcano, Kallinteris Andreas, Jun Jet Tai, Seungjae Ryan Lee, Jordan Terry (https://github.com/Farama-Foundation/Gymnasium-Robotics)
-- 'Meta-World: A Benchmark and Evaluation for Multi-Task and Meta Reinforcement Learning' by Tianhe Yu∗1, Deirdre Quillen, Zhanpeng He, Ryan Julian, Avnish Narayan, Hayden Shively, Adithya Bellathur, Karol Hausman, Chelsea Finn, Sergey Levine. (https://github.com/Farama-Foundation/Metaworld)
+- 'Meta-World: A Benchmark and Evaluation for Multi-Task and Meta Reinforcement Learning' by Tianhe Yu, Deirdre Quillen, Zhanpeng He, Ryan Julian, Avnish Narayan, Hayden Shively, Adithya Bellathur, Karol Hausman, Chelsea Finn, Sergey Levine. (https://github.com/Farama-Foundation/Metaworld)
 - 'D4RL: Datasets for Deep Data-Driven Reinforcement Learning' by Justin Fu, Aviral Kumar, Ofir Nachum, George Tucker, Sergey Levine. (https://github.com/Farama-Foundation/D4RL)
 Args:
-  agent (numpy array): base position of the agent gripper arm
-  block_gripper (boolean): whether or not the gripper is blocked (i.e. not movable) or not
-  continue_task (bool): whether to spawn a new target or reset the agent ore upon episode completion
-  distance_threshold (float): the threshold after which a goal is considered achieved
-  has_object (boolean): whether or not the environment has an object
-  target (numpy array): base position of the target 
-  target_in_the_air (boolean): whether or not the target should be in the air above the table or on the table surface
-  target_noise (float): range of a uniform distribution for sampling a target
-  frame_skip (int): number of substeps the simulation runs on every call to step (prev: n_substeps)
-  position_noise (float): range of a uniform distribution for sampling initial object positions (prev: obj_range)
-  render_mode (str)
-"""
+- agent (numpy array): base position of the agent gripper arm
+- block_gripper (boolean): whether or not the gripper is blocked (i.e. not movable) or not
+- continue_task (bool): whether to spawn a new target or reset the agent ore upon episode completion
+- distance_threshold (float): the threshold after which a goal is considered achieved
+- has_object (boolean): whether or not the environment has an object
+- target (numpy array): base position of the target 
+- target_in_the_air (boolean): whether or not the target should be in the air above the table or on the table surface
+- target_noise (float): range of a uniform distribution for sampling a target
+- frame_skip (int): number of substeps the simulation runs on every call to step (prev: n_substeps)
+- position_noise (float): range of a uniform distribution for sampling initial object positions (prev: obj_range)
+- render_mode (str)"""
 
 from typing import Optional; import numpy as np; import gymnasium as gym
 from hyphi_gym.common.simulation import Simulation
-from hyphi_gym.common import Base
+from hyphi_gym.common.base import Base
 
 class Robot(Base, Simulation):
   """Continous-control robot base class"""

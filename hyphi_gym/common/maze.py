@@ -63,8 +63,7 @@ class Maze(Board):
   # Board
   """Gridworld Maze Environment based on hyphi Grid.
   :param size: (≤15, guarantee solvability within 100 steps (worst for 15: 96))
-  :param random: optional list of features to be stochastic
-    supporting layout, agent-, and target-placement"""
+  :param random: optional list of features to be stochastic supporting layout, agent-, and target-placement"""
   def __init__(self, size, random=[], prefix='', **kwargs): 
     self.size = size; self._name = f'{prefix}Maze{size}'
     layout = None if 'Layouts' in random else LEVELS[f"Maze{size}"] # set layout = None for single random generation
@@ -72,7 +71,7 @@ class Maze(Board):
     Board.__init__(self, size=(size,size), layout=layout, random=random, RADD=['Layouts'], max_episode_steps=max_steps, bound=int(max_path), **kwargs)
 
   def _generate(self):
-    """Generate random mazes of `self.size` using `Kruskal's algorithm. 
+    """Generate random mazes of `self.size` using Kruskal's algorithm. 
     Generated mazes are forced to difer the static configurations above."""
     APOS, TPOS = (self.size[0]-2,1), (1,self.size[1]-2)
     maze, visited = np.full(self.size, CELLS[WALL]), []

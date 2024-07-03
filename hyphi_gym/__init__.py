@@ -1,14 +1,14 @@
-from hyphi_gym.envs import *; from hyphi_gym.wrappers import Monitor
+from hyphi_gym.wrappers import Monitor
 import re; from functools import reduce
 from gymnasium.envs.registration import register
 
 def register_envs():
-  register(id="HoleyGrid", entry_point="hyphi_gym.envs:HoleyGrid")
-  register(id="HoleyPlane", entry_point="hyphi_gym.envs:HoleyPlane")
-  register(id="GridMaze", entry_point="hyphi_gym.envs:GridMaze") 
-  register(id="PointMaze", entry_point="hyphi_gym.envs:PointMaze")
-  register(id="FlatGrid", entry_point="hyphi_gym.envs:FlatGrid")
-  register(id="Fetch", entry_point="hyphi_gym.envs:Fetch")
+  register(id="HoleyGrid", entry_point="hyphi_gym.envs.HoleyGrid:HoleyGrid")
+  register(id="HoleyPlane", entry_point="hyphi_gym.envs.HoleyGrid:HoleyPlane")
+  register(id="GridMaze", entry_point="hyphi_gym.envs.GridMaze:GridMaze") 
+  register(id="PointMaze", entry_point="hyphi_gym.envs.PointMaze:PointMaze")
+  register(id="FlatGrid", entry_point="hyphi_gym.envs.FlatGrid:FlatGrid")
+  register(id="Fetch", entry_point="hyphi_gym.envs.Fetch:Fetch")
 
 def named(name):
   """Enviroment creation helper, trasforms string name to make arguments.
@@ -32,9 +32,9 @@ def named(name):
     id = 'FlatGrid'; size = int(re.findall(r'\d+', name)[0]); level= {'id':id, 'size': size}
     name = reduce(lambda n,r: n.replace(r,''), ['Flat','Grid'], name)
   if 'Fetch' in name:
-    tasks = ['Reach']
-    level = {'id': 'Fetch', 'task': ''.join([t for t in tasks if t in name])}
-    name = reduce(lambda n,r: n.replace(r,''), ['Fetch', *tasks], name)
+    from hyphi_gym.envs.Fetch import TASKS
+    level = {'id': 'Fetch', 'task': ''.join([t for t in TASKS if t in name])}
+    name = reduce(lambda n,r: n.replace(r,''), ['Fetch', *TASKS], name)
   args = {'sparse': 'Sparse' in name, 'detailed': 'Detailed' in name, 'explore': 'Explore' in name}
   name = name.replace('Sparse','').replace('Explore','').replace('Detailed','')
   random = [*random, *re.findall('[A-Z][^A-Z]*', name)]

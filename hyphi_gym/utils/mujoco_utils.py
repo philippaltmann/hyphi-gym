@@ -27,9 +27,7 @@ def robot_get_obs(model, data, joint_names):
 
 def ctrl_set_action(model, data, action):
     """For torque actuators it copies the action into mujoco ctrl field.
-
-    For position actuators it sets the target relative to the current qpos.
-    """
+    For position actuators it sets the target relative to the current qpos. """
     if model.nmocap > 0:
         _, action = np.split(action, (model.nmocap * 7,))
 
@@ -297,12 +295,11 @@ def extract_mj_names(model: MujocoModel, obj_type: MujocoObject) -> tuple[Union[
 
 class MujocoModelNames:
   """Access MujocoObject object names and ids of the current MuJoCo model.
-  This class supports access to the names and ids of the following mjObj types:
-    mjOBJ_BODY mjOBJ_JOINT mjOBJ_GEOM mjOBJ_SITE mjOBJ_CAMERA mjOBJ_ACTUATOR mjOBJ_SENSOR
-  The properties provided for each ``mjObj`` are:
-    ``mjObj``_names: list of the mjObj names in the model of type mjOBJ_FOO.
-    ``mjObj``_name2id: dictionary with name of the mjObj as keys and id of the mjObj as values.
-    ``mjObj``_id2name: dictionary with id of the mjObj as keys and name of the mjObj as values. """
+  This class supports access to the names and ids of the following mjObj types: mjOBJ_BODY mjOBJ_JOINT mjOBJ_GEOM mjOBJ_SITE mjOBJ_CAMERA mjOBJ_ACTUATOR mjOBJ_SENSOR
+  The properties provided for each <mjObj> are:
+  - <mjObj>_names: list of the mjObj names in the model of type mjOBJ_FOO.
+  - <mjObj>_name2id: dictionary with name of the mjObj as keys and id of the mjObj as values.
+  - <mjObj>_id2name: dictionary with id of the mjObj as keys and name of the mjObj as values. """
 
   def __init__(self, model: MujocoModel):
     """Access MujocoObject object names and ids of the current MuJoCo model.

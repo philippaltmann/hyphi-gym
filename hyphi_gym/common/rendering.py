@@ -1,7 +1,7 @@
 """ Vizualisation helper to render hyphi-gym board based envs using blender"""
 import tempfile; import time; import os; import math; 
 import numpy as np; from PIL import Image
-from hyphi_gym.utils import stdout_redirected
+from hyphi_gym.utils.stdout_redirected import stdout_redirected
 from hyphi_gym.common.board import *
 try: 
   with stdout_redirected(): import bpy; from mathutils import Vector;                   # type: ignore
@@ -22,11 +22,14 @@ class Rendering(Board):
   def setup3D(self, layout:np.ndarray): 
     with stdout_redirected(): bpy.ops.wm.open_mainfile(filepath=SCENE)                    # type: ignore
     self.scene = bpy.context.scene                                                        # type: ignore
+    self._a, self._t = False, False
     
     def _place_3D(x, y, t):
       if t == HOLE: return
       o = bpy.data.objects[t]                                                             # type: ignore
       if t in [AGENT, TARGET]: _place_3D(x, y, FIELD)
+      if t == AGENT and not self._a: self._a=True; o = bpy.data.objects['A']
+      elif t == TARGET and not self._t: self._t=True; o = bpy.data.objects['T']
       else: o = o.copy(); bpy.context.collection.objects.link(o)                          # type: ignore
       o.location = self._bpos(x,y,t)
 

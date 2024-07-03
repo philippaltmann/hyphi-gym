@@ -20,8 +20,7 @@ LEVELS = {
 class Holes(Board):
   """Gridworld Maze Environment based on hyphi Grid.
   :param level: Configuration to use [Train|Shift]
-  :param random: optional list of features to be stochastic
-    supporting layout, agent-, and target-placement"""
+  :param random: optional list of features to be stochastic supporting layout, agent-, and target-placement"""
   def __init__(self, level:str, random=[], **kwargs): 
     self._name = f'Holes{level}'; #layout = None if 'Layouts' in random else LEVELS[level]
     layout, size, radd = (LEVELS[level], (7,9), []) if level in LEVELS else (None, (int(level),int(level)), ['Layouts'])

@@ -17,8 +17,7 @@ class Base(gym.Env):
   • Detailed Rewards (defaults to False)
   • Reward Threshold for Early Stopping 
   • Exploration Mode without reward / target 
-  • Supporting randomization upon init (`Agent` and `Target`), 
-    or, upon reset (`Agents`, `Targets` and items in `RADD`)
+  • Supporting randomization upon init (`Agent` and `Target`), or, upon reset (`Agents`, `Targets` and items in `RADD`)
   • Seeding nondeterministic environments
   • Generating dynamic spec obejct and env name based on the configuration"""
 
