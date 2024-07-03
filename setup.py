@@ -24,7 +24,8 @@ setup(
     "rendering": rendering,
     "simulation": simulation,
     "plotting": plotting,
-    "all": rendering + simulation + plotting
+    "all": rendering + simulation + plotting,
+    "docs": ['sphinx', 'furo', 'sphinx_autoapi', 'myst_parser']
   },
   python_requires=">=3.8",
   classifiers=[

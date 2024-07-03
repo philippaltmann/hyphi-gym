@@ -1,5 +1,9 @@
-hyphi_gym/legacy
+# General
+legacy
 todo.*
+
+# Sphinx
+docs
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
