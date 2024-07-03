@@ -1,21 +1,34 @@
-## <img src="hyphi_gym/assets/hyphi.png" width="16px"> hyphi gym 
-
 # Robustness Gymnasium Benchmark Suite
 
+[![Website](https://img.shields.io/website?url=https%3A%2F%2Fgym.hyphi.co&logo=readthedocs&logoColor=white&label=Documentation)](https://gym.hyphi.co)
+[![GitHub Release](https://img.shields.io/github/v/release/philippaltmann/hyphi-gym?logo=github&logoColor=white&label=GitHub)](http://github.com/philippaltmann/hyphi-gym)
+[![PyPI - Version](https://img.shields.io/pypi/v/hyphi-gym?logo=pypi&logoColor=white)](https://pypi.org/project/hyphi-gym/)
+
 Gym-0.29 based compilation of benchmark environmens for various discrete action and observation spaces including different tasks.
+
+**Installation:**
+
+```sh
+# From pypi
+pip install hyphi-gym
+
+# or, from source 
+git clone https://github.com/philippaltmann/hyphi-gym.git
+pip install -e '.[all]'
+```
 
 ## Holey Grid
 
 To specifically assess the robustness to distributional shift, we offer the following static layouts:
 
 HoleyGrid | HoleyGridShift
-:--------:|:--------:|
+:--------:|:--------:
 ![HoleyGrid](hyphi_gym/assets/render/Holes/Grid.png) | ![HoleyGridShift](hyphi_gym/assets/render/Holes/GridShift.png)
 
 Additionally, the following generated opions are supported:
 
 HoleyGrid7![HoleyGrid7](hyphi_gym/assets/render/Holes/Grid7.png) | HoleyGrid9![HoleyGrid9](hyphi_gym/assets/render/Holes/Grid9.png) | HoleyGrid11![HoleyGrid11](hyphi_gym/assets/render/Holes/Grid11.png) | HoleyGrid13![HoleyGrid13](hyphi_gym/assets/render/Holes/Grid13.png) | HoleyGrid15![HoleyGrid15](hyphi_gym/assets/render/Holes/Grid15.png)
-:-:|:-:|:--:|:--:|:--:|
+:-:|:-:|:--:|:--:|:--:
 HoleyGrids7![HoleyGrids7](hyphi_gym/assets/render/Holes/Grids7.gif) | HoleyGrids9![HoleyGrids9](hyphi_gym/assets/render/Holes/Grids9.gif) | HoleyGrids11![HoleyGrids11](hyphi_gym/assets/render/Holes/Grids11.gif) | HoleyGrids13![HoleyGrids13](hyphi_gym/assets/render/Holes/Grids13.gif) | HoleyGrids15![HoleyGrids15](hyphi_gym/assets/render/Holes/Grids15.gif)
 
 All generated layouts are ensured to have a valid solution path of lenght $n+m-6$ for $n \times m$ grids.
@@ -34,7 +47,7 @@ Additionally, the polices' robustness to distributional shift can be assesed by 
 ## Holey Plane
 
 HoleyPlane | HoleyPlaneShift | HoleyPlanes
-:--------:|:--------:|:--------:|
+:--------:|:--------:|:--------:
 ![HoleyPlane](hyphi_gym/assets/render/Holes/Plane.png) | ![HoleyPlaneShift](hyphi_gym/assets/render/Holes/PlaneShift.png) | ![ HoleyPlanes](hyphi_gym/assets/render/Holes/Planes.gif)
 
 **Goal:** Navigate to the target state whilst avoiding unsafe states (holes). Episodes are terminated upon reaching the maximum of 400 steps, visiting an unsafe area, or reaching the target, yielding the termination reasons `TIME`, `FAIL`, and `GOAL` respectively.
@@ -50,7 +63,7 @@ HoleyPlane | HoleyPlaneShift | HoleyPlanes
 ## GridMaze
 
 Maze7![Maze7](hyphi_gym/assets/render/Maze/7.png) | Maze9![Maze9](hyphi_gym/assets/render/Maze/9.png) | Maze11![Maze11](hyphi_gym/assets/render/Maze/11.png) | Maze13![Maze13](hyphi_gym/assets/render/Maze/13.png) | Maze15![Maze15](hyphi_gym/assets/render/Maze/15.png)
-:-:|:-:|:--:|:--:|:--:|
+:-:|:-:|:--:|:--:|:--:
 Mazes7![Mazes7](hyphi_gym/assets/render/Mazes/7.gif) | Mazes9![Mazes9](hyphi_gym/assets/render/Mazes/9.gif) | Mazes11![Mazes11](hyphi_gym/assets/render/Mazes/11.gif) | Mazes13![Mazes13](hyphi_gym/assets/render/Mazes/13.gif) | Mazes15![Mazes15](hyphi_gym/assets/render/Mazes/15.gif)
 
 **Goal:** Navigate the maze to reach the target within 100 steps (200 for Maze15).
@@ -68,7 +81,7 @@ Mazes7![Mazes7](hyphi_gym/assets/render/Mazes/7.gif) | Mazes9![Mazes9](hyphi_gym
 ## PointMaze
 
 Maze7![Maze7](hyphi_gym/assets/render/PointMaze/7.png) | Maze9![Maze9](hyphi_gym/assets/render/PointMaze/9.png) | Maze11![Maze11](hyphi_gym/assets/render/PointMaze/11.png) | Maze13![Maze13](hyphi_gym/assets/render/PointMaze/13.png) | Maze15![Maze15](hyphi_gym/assets/render/PointMaze/15.png)
-:-:|:-:|:--:|:--:|:--:|
+:-:|:-:|:--:|:--:|:--:
 Mazes7![Mazes7](hyphi_gym/assets/render/PointMazes/7.gif) | Mazes9![Mazes9](hyphi_gym/assets/render/PointMazes/9.gif) | Mazes11![Mazes11](hyphi_gym/assets/render/PointMazes/11.gif) | Mazes13![Mazes13](hyphi_gym/assets/render/PointMazes/13.gif) | Mazes15![Mazes15](hyphi_gym/assets/render/PointMazes/15.gif)
 
 **Goal:** Navigate the maze to reach the target within 200, 400, 600, 900, 1200 steps resprectively.
@@ -86,7 +99,7 @@ Mazes7![Mazes7](hyphi_gym/assets/render/PointMazes/7.gif) | Mazes9![Mazes9](hyph
 Base Grid Environment without obstacles and holes:
 
 FlatGrid7![FlatGrid7](hyphi_gym/assets/render/Flat/Grid7.png) | FlatGrid9![FlatGrid9](hyphi_gym/assets/render/Flat/Grid9.png) | FlatGrid11![FlatGrid11](hyphi_gym/assets/render/Flat/Grid11.png) | FlatGrid13![FlatGrid13](hyphi_gym/assets/render/Flat/Grid13.png) | FlatGrid15![FlatGrid15](hyphi_gym/assets/render/Flat/Grid15.png)
-:-:|:-:|:--:|:--:|:--:|
+:-:|:-:|:--:|:--:|:--:
 
 **Goal:** Navigate the grid to reach the target within 100 steps.
 
@@ -100,7 +113,7 @@ FlatGrid7![FlatGrid7](hyphi_gym/assets/render/Flat/Grid7.png) | FlatGrid9![FlatG
 
 FetchReach | FechtSlide | FetchPlace
 :---------:|:----------:|:----------:
-![FetchReach](hyphi_gym/assets/render/Fetch/Reach.png) | ![FechtSlide](hyphi_gym/assets/render/Fetch/Slide.png) | FetchPlace![FetchPlace](hyphi_gym/assets/render/Fetch/Place.png)
+![FetchReach](hyphi_gym/assets/render/Fetch/Reach.png) | tbd | tbd
 
 **Goal:** Control the  7-DoF [Fetch Mobile Manipulator](https://fetchrobotics.com) robot arm to reach the target by moving the gripper, sliding the object, or picking and placing the object within 100, 200 and 400 steps respectively.
 
@@ -174,11 +187,11 @@ Thus, the following variations may be used within the `random` list:
 - ``Targets``: Target posision randomized upon environment reset
 
 HoleyGridAgent(s) | Maze9Agent(s) | HoleyGridTarget(s) |  Maze9Target(s)
-:----------------:|:-------------:|:------------------:|:----------------:|
+:----------------:|:-------------:|:------------------:|:----------------:
 ![GridAgents](hyphi_gym/assets/render/Random/GridAgents.gif) | ![MazeAgents](hyphi_gym/assets/render/Random/MazeAgents.gif) | ![GridTargets](hyphi_gym/assets/render/Random/GridTargets.gif) | ![MazeTargets](hyphi_gym/assets/render/Random/MazeTargets.gif)
 
 FetchAgent(s) | FetchTarget(s)
-:------------:|:--------------:|
+:------------:|:--------------:
 ![FetchAgents](hyphi_gym/assets/render/Random/FetchAgents.gif) | ![FetchTargets](hyphi_gym/assets/render/Random/FetchTargets.gif)
 
 ## Demo & Test
@@ -194,6 +207,16 @@ python test HoleyPlane --demo 2 1 0 1 1 0 1
 
 # Generate Random Layout Grid Renderings
 python test Mazes7 Mazes11 --runs 100 --grid
+```
+
+## Documentation
+
+```sh
+# Install required pacakges
+pip install -e .[docs]
+
+# Build html documentation (& deploy-docs)
+sphinx-build -M html . docs
 ```
 
 ## Helpful Links
