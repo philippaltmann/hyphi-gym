@@ -8,9 +8,8 @@ authors:
   - given-names: Philipp
     family-names: Altmann
     email: philipp@hyphi.co
-    orcid: 'https://orcid.org/0000-0003-1134-176X'
 repository-code: 'https://github.com/philippaltmann/hyphi-gym/'
-url: 'https://gymnasium.farama.org/'
+url: 'https://gym.hyphi.co/'
 abstract: >-
   A Gymnasium benchmark suite for evaluating the robustness 
   and multi-task performance of reinforcement learning 
