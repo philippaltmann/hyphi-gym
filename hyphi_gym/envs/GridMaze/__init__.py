@@ -1,4 +1,5 @@
-from hyphi_gym.common import Grid, Maze
+from hyphi_gym.common.grid import Grid
+from hyphi_gym.common.maze import Maze
 
 class GridMaze(Maze,Grid):
   def __init__(self, render_mode=None, **kwargs):

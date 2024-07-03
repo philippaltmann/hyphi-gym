@@ -1,4 +1,5 @@
-from hyphi_gym.common import Grid, Holes
+from hyphi_gym.common.grid import Grid
+from hyphi_gym.common.holes import Holes
 
 class HoleyGrid(Holes, Grid):
   def __init__(self, level='Train', render_mode=None, **kwargs):

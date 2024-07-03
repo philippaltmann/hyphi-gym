@@ -1,4 +1,4 @@
-from hyphi_gym.common import Grid
+from hyphi_gym.common.grid import Grid
 from hyphi_gym.common.board import Board
 
 class FlatGrid(Grid, Board):

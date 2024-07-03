@@ -2,7 +2,7 @@ from os import path; import tempfile
 from typing import Optional, Union; import xml.etree.ElementTree as ET
 import numpy as np; from gymnasium import spaces
 from hyphi_gym.common.simulation import Simulation, get_xml
-from hyphi_gym.common.board import AGENT, CELLS, FIELD, WALL, TARGET, HOLE
+from hyphi_gym.common.board import *
 SIZE = 1.0; HEIGHT = 1.0; AGENT_SIZE = 0.3; 
 
 class Point(Simulation):

@@ -1,4 +1,5 @@
-from hyphi_gym.common import Holes, Point
+from hyphi_gym.common.holes import Holes
+from hyphi_gym.common.point import Point
 
 class HoleyPlane(Point, Holes):
   def __init__(self, render_mode=None, **kwargs):

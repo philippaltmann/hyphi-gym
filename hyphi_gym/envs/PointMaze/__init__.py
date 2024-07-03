@@ -1,4 +1,5 @@
-from hyphi_gym.common import Maze, Point
+from hyphi_gym.common.maze import Maze
+from hyphi_gym.common.point import Point
 
 class PointMaze(Point, Maze): # Point(Mujoco) | Maze(Board(Base))
   def __init__(self, render_mode=None, **kwargs):

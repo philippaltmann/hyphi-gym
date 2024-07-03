@@ -1,5 +1,5 @@
 import numpy as np; from typing import Optional, Union
-from hyphi_gym.common import Base; import gymnasium as gym
+from hyphi_gym.common.base import Base; import gymnasium as gym
 
 # State Types
 WALL, FIELD, AGENT, TARGET, HOLE = '#', ' ', 'A', 'T', 'H' 
