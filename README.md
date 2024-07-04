@@ -23,13 +23,13 @@ To specifically assess the robustness to distributional shift, we offer the foll
 
 HoleyGrid | HoleyGridShift
 :--------:|:--------:
-![HoleyGrid](hyphi_gym/assets/render/Holes/Grid.png) | ![HoleyGridShift](hyphi_gym/assets/render/Holes/GridShift.png)
+![HoleyGrid](https://gym.hyphi.co/_images/Grid.png) | ![HoleyGridShift](https://gym.hyphi.co/_images/GridShift.png)
 
 Additionally, the following generated opions are supported:
 
-HoleyGrid7![HoleyGrid7](hyphi_gym/assets/render/Holes/Grid7.png) | HoleyGrid9![HoleyGrid9](hyphi_gym/assets/render/Holes/Grid9.png) | HoleyGrid11![HoleyGrid11](hyphi_gym/assets/render/Holes/Grid11.png) | HoleyGrid13![HoleyGrid13](hyphi_gym/assets/render/Holes/Grid13.png) | HoleyGrid15![HoleyGrid15](hyphi_gym/assets/render/Holes/Grid15.png)
+HoleyGrid7![HoleyGrid7](https://gym.hyphi.co/_images/Grid7.png) | HoleyGrid9![HoleyGrid9](https://gym.hyphi.co/_images/Grid9.png) | HoleyGrid11![HoleyGrid11](https://gym.hyphi.co/_images/Grid11.png) | HoleyGrid13![HoleyGrid13](https://gym.hyphi.co/_images/Grid13.png) | HoleyGrid15![HoleyGrid15](https://gym.hyphi.co/_images/Grid15.png)
 :-:|:-:|:--:|:--:|:--:
-HoleyGrids7![HoleyGrids7](hyphi_gym/assets/render/Holes/Grids7.gif) | HoleyGrids9![HoleyGrids9](hyphi_gym/assets/render/Holes/Grids9.gif) | HoleyGrids11![HoleyGrids11](hyphi_gym/assets/render/Holes/Grids11.gif) | HoleyGrids13![HoleyGrids13](hyphi_gym/assets/render/Holes/Grids13.gif) | HoleyGrids15![HoleyGrids15](hyphi_gym/assets/render/Holes/Grids15.gif)
+HoleyGrids7![HoleyGrids7](https://gym.hyphi.co/_images/Grids7.gif) | HoleyGrids9![HoleyGrids9](https://gym.hyphi.co/_images/Grids9.gif) | HoleyGrids11![HoleyGrids11](https://gym.hyphi.co/_images/Grids11.gif) | HoleyGrids13![HoleyGrids13](https://gym.hyphi.co/_images/Grids13.gif) | HoleyGrids15![HoleyGrids15](https://gym.hyphi.co/_images/Grids15.gif)
 
 All generated layouts are ensured to have a valid solution path of lenght $n+m-6$ for $n \times m$ grids.
 
@@ -48,7 +48,7 @@ Additionally, the polices' robustness to distributional shift can be assesed by 
 
 HoleyPlane | HoleyPlaneShift | HoleyPlanes
 :--------:|:--------:|:--------:
-![HoleyPlane](hyphi_gym/assets/render/Holes/Plane.png) | ![HoleyPlaneShift](hyphi_gym/assets/render/Holes/PlaneShift.png) | ![ HoleyPlanes](hyphi_gym/assets/render/Holes/Planes.gif)
+![HoleyPlane](https://gym.hyphi.co/_images/Plane.png) | ![HoleyPlaneShift](https://gym.hyphi.co/_images/PlaneShift.png) | ![ HoleyPlanes](https://gym.hyphi.co/_images/Planes.gif)
 
 **Goal:** Navigate to the target state whilst avoiding unsafe states (holes). Episodes are terminated upon reaching the maximum of 400 steps, visiting an unsafe area, or reaching the target, yielding the termination reasons `TIME`, `FAIL`, and `GOAL` respectively.
 
@@ -62,9 +62,9 @@ HoleyPlane | HoleyPlaneShift | HoleyPlanes
 
 ## GridMaze
 
-Maze7![Maze7](hyphi_gym/assets/render/Maze/7.png) | Maze9![Maze9](hyphi_gym/assets/render/Maze/9.png) | Maze11![Maze11](hyphi_gym/assets/render/Maze/11.png) | Maze13![Maze13](hyphi_gym/assets/render/Maze/13.png) | Maze15![Maze15](hyphi_gym/assets/render/Maze/15.png)
+Maze7![Maze7](https://gym.hyphi.co/_images/7.png) | Maze9![Maze9](https://gym.hyphi.co/_images/9.png) | Maze11![Maze11](https://gym.hyphi.co/_images/11.png) | Maze13![Maze13](https://gym.hyphi.co/_images/13.png) | Maze15![Maze15](https://gym.hyphi.co/_images/15.png)
 :-:|:-:|:--:|:--:|:--:
-Mazes7![Mazes7](hyphi_gym/assets/render/Mazes/7.gif) | Mazes9![Mazes9](hyphi_gym/assets/render/Mazes/9.gif) | Mazes11![Mazes11](hyphi_gym/assets/render/Mazes/11.gif) | Mazes13![Mazes13](hyphi_gym/assets/render/Mazes/13.gif) | Mazes15![Mazes15](hyphi_gym/assets/render/Mazes/15.gif)
+Mazes7![Mazes7](https://gym.hyphi.co/_images/7.gif) | Mazes9![Mazes9](https://gym.hyphi.co/_images/9.gif) | Mazes11![Mazes11](https://gym.hyphi.co/_images/11.gif) | Mazes13![Mazes13](https://gym.hyphi.co/_images/13.gif) | Mazes15![Mazes15](https://gym.hyphi.co/_images/15.gif)
 
 **Goal:** Navigate the maze to reach the target within 100 steps (200 for Maze15).
 
@@ -80,9 +80,9 @@ Mazes7![Mazes7](hyphi_gym/assets/render/Mazes/7.gif) | Mazes9![Mazes9](hyphi_gym
 
 ## PointMaze
 
-Maze7![Maze7](hyphi_gym/assets/render/PointMaze/7.png) | Maze9![Maze9](hyphi_gym/assets/render/PointMaze/9.png) | Maze11![Maze11](hyphi_gym/assets/render/PointMaze/11.png) | Maze13![Maze13](hyphi_gym/assets/render/PointMaze/13.png) | Maze15![Maze15](hyphi_gym/assets/render/PointMaze/15.png)
+Maze7![Maze7](https://gym.hyphi.co/_images/71.png) | Maze9![Maze9](https://gym.hyphi.co/_images/91.png) | Maze11![Maze11](https://gym.hyphi.co/_images/111.png) | Maze13![Maze13](https://gym.hyphi.co/_images/131.png) | Maze15![Maze15](https://gym.hyphi.co/_images/151.png)
 :-:|:-:|:--:|:--:|:--:
-Mazes7![Mazes7](hyphi_gym/assets/render/PointMazes/7.gif) | Mazes9![Mazes9](hyphi_gym/assets/render/PointMazes/9.gif) | Mazes11![Mazes11](hyphi_gym/assets/render/PointMazes/11.gif) | Mazes13![Mazes13](hyphi_gym/assets/render/PointMazes/13.gif) | Mazes15![Mazes15](hyphi_gym/assets/render/PointMazes/15.gif)
+Mazes7![Mazes7](https://gym.hyphi.co/_images/71.gif) | Mazes9![Mazes9](https://gym.hyphi.co/_images/91.gif) | Mazes11![Mazes11](https://gym.hyphi.co/_images/111.gif) | Mazes13![Mazes13](https://gym.hyphi.co/_images/131.gif) | Mazes15![Mazes15](https://gym.hyphi.co/_images/151.gif)
 
 **Goal:** Navigate the maze to reach the target within 200, 400, 600, 900, 1200 steps resprectively.
 
@@ -98,7 +98,7 @@ Mazes7![Mazes7](hyphi_gym/assets/render/PointMazes/7.gif) | Mazes9![Mazes9](hyph
 
 Base Grid Environment without obstacles and holes:
 
-FlatGrid7![FlatGrid7](hyphi_gym/assets/render/Flat/Grid7.png) | FlatGrid9![FlatGrid9](hyphi_gym/assets/render/Flat/Grid9.png) | FlatGrid11![FlatGrid11](hyphi_gym/assets/render/Flat/Grid11.png) | FlatGrid13![FlatGrid13](hyphi_gym/assets/render/Flat/Grid13.png) | FlatGrid15![FlatGrid15](hyphi_gym/assets/render/Flat/Grid15.png)
+FlatGrid7![FlatGrid7](https://gym.hyphi.co/_images/Grid71.png) | FlatGrid9![FlatGrid9](https://gym.hyphi.co/_images/Grid91.png) | FlatGrid11![FlatGrid11](https://gym.hyphi.co/_images/Grid111.png) | FlatGrid13![FlatGrid13](https://gym.hyphi.co/_images/Grid131.png) | FlatGrid15![FlatGrid15](https://gym.hyphi.co/_images/Grid151.png)
 :-:|:-:|:--:|:--:|:--:
 
 **Goal:** Navigate the grid to reach the target within 100 steps.
@@ -113,7 +113,7 @@ FlatGrid7![FlatGrid7](hyphi_gym/assets/render/Flat/Grid7.png) | FlatGrid9![FlatG
 
 FetchReach | FechtSlide | FetchPlace
 :---------:|:----------:|:----------:
-![FetchReach](hyphi_gym/assets/render/Fetch/Reach.png) | tbd | tbd
+![FetchReach](https://gym.hyphi.co/_images/Reach.png) | tbd | tbd
 
 **Goal:** Control the  7-DoF [Fetch Mobile Manipulator](https://fetchrobotics.com) robot arm to reach the target by moving the gripper, sliding the object, or picking and placing the object within 100, 200 and 400 steps respectively.
 
@@ -188,11 +188,11 @@ Thus, the following variations may be used within the `random` list:
 
 HoleyGridAgent(s) | Maze9Agent(s) | HoleyGridTarget(s) |  Maze9Target(s)
 :----------------:|:-------------:|:------------------:|:----------------:
-![GridAgents](hyphi_gym/assets/render/Random/GridAgents.gif) | ![MazeAgents](hyphi_gym/assets/render/Random/MazeAgents.gif) | ![GridTargets](hyphi_gym/assets/render/Random/GridTargets.gif) | ![MazeTargets](hyphi_gym/assets/render/Random/MazeTargets.gif)
+![GridAgents](https://gym.hyphi.co/_images/GridAgents.gif) | ![MazeAgents](https://gym.hyphi.co/_images/MazeAgents.gif) | ![GridTargets](https://gym.hyphi.co/_images/GridTargets.gif) | ![MazeTargets](https://gym.hyphi.co/_images/MazeTargets.gif)
 
 FetchAgent(s) | FetchTarget(s)
 :------------:|:--------------:
-![FetchAgents](hyphi_gym/assets/render/Random/FetchAgents.gif) | ![FetchTargets](hyphi_gym/assets/render/Random/FetchTargets.gif)
+![FetchAgents](https://gym.hyphi.co/_images/FetchAgents.gif) | ![FetchTargets](https://gym.hyphi.co/_images/FetchTargets.gif)
 
 ## Demo & Test
 
@@ -207,6 +207,20 @@ python test HoleyPlane --demo 2 1 0 1 1 0 1
 
 # Generate Random Layout Grid Renderings
 python test Mazes7 Mazes11 --runs 100 --grid
+```
+
+## Citation
+
+When using this repository you can cite it as:
+
+```bibtex
+@misc{altmann_hyphi-gym_2024,
+      author = {Altmann, Philipp},
+      license = {MIT},
+      title = {{hyphi gym}},
+      url = {https://gym.hyphi.co},
+      year = {2024}
+}
 ```
 
 ## Documentation
